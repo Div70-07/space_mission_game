@@ -1,14 +1,15 @@
-import { ref, set, get, onValue, off, runTransaction, onDisconnect } from 'firebase/database'
+import { ref, set, get, update, onValue, off, runTransaction, onDisconnect } from 'firebase/database'
 import type { Role, Design } from '@/shared/types'
-import { db } from './firebase'
+import { db, getOrCreateAnonymousUser } from './firebase'
 import type { RoomBackend, RoomState, Player } from './types'
 import { generateRoomCode } from './localBackend'
 
 export class FirebaseBackend implements RoomBackend {
-  async createRoom(hostName: string, initialDesign: Design): Promise<{ code: string; playerId: string }> {
+  async createRoom(hostName: string, initialDesign: Design, maxPlayers: number = 4): Promise<{ code: string; playerId: string }> {
     if (!db) throw new Error('Firebase Database not initialized')
+    const user = await getOrCreateAnonymousUser()
+    const playerId = user ? user.uid : `player_${Math.random().toString(36).substring(2, 9)}`
     const code = generateRoomCode()
-    const playerId = `player_${Math.random().toString(36).substring(2, 9)}`
 
     const player: Player = {
       id: playerId,
@@ -22,6 +23,9 @@ export class FirebaseBackend implements RoomBackend {
       design: initialDesign,
       players: { [playerId]: player },
       status: 'lobby',
+      maxPlayers: Math.max(2, Math.min(4, maxPlayers)),
+      hostId: playerId,
+      createdAt: Date.now(),
     }
 
     const roomRef = ref(db, `rooms/${code}`)
@@ -40,6 +44,9 @@ export class FirebaseBackend implements RoomBackend {
 
   async joinRoom(code: string, playerName: string): Promise<{ playerId: string; roomState: RoomState }> {
     if (!db) throw new Error('Firebase Database not initialized')
+    const user = await getOrCreateAnonymousUser()
+    const playerId = user ? user.uid : `player_${Math.random().toString(36).substring(2, 9)}`
+
     const cleanCode = code.trim().toUpperCase()
     const roomRef = ref(db, `rooms/${cleanCode}`)
     const snapshot = await get(roomRef)
@@ -50,11 +57,11 @@ export class FirebaseBackend implements RoomBackend {
 
     const room = snapshot.val() as RoomState
     const currentPlayers = Object.values(room.players || {})
-    if (currentPlayers.length >= 4) {
-      throw new Error(`Room "${cleanCode}" is full (maximum 4 crew specialists).`)
+    const limit = room.maxPlayers || 4
+    if (currentPlayers.length >= limit) {
+      throw new Error(`Room "${cleanCode}" is full (maximum ${limit} crew specialists).`)
     }
 
-    const playerId = `player_${Math.random().toString(36).substring(2, 9)}`
     const player: Player = {
       id: playerId,
       name: playerName || `Specialist ${currentPlayers.length + 1}`,
@@ -106,6 +113,16 @@ export class FirebaseBackend implements RoomBackend {
     if (!db) return
     const playerRef = ref(db, `rooms/${code}/players/${playerId}`)
     await set(playerRef, null)
+
+    try {
+      const roomPlayersRef = ref(db, `rooms/${code}/players`)
+      const snapshot = await get(roomPlayersRef)
+      if (!snapshot.exists() || !snapshot.val() || Object.keys(snapshot.val()).length === 0) {
+        await set(ref(db, `rooms/${code}`), null)
+      }
+    } catch {
+      // Ignore cleanup error
+    }
   }
 
   subscribe(code: string, callback: (state: RoomState) => void): () => void {
@@ -119,9 +136,15 @@ export class FirebaseBackend implements RoomBackend {
     return () => off(roomRef, 'value', unsubscribe)
   }
 
-  async writeDesign(code: string, design: Design, _byPlayerId: string): Promise<void> {
+  async writeDesign(code: string, patch: Partial<Design>, _byPlayerId: string): Promise<void> {
     if (!db) return
     const designRef = ref(db, `rooms/${code}/design`)
-    await set(designRef, design)
+    try {
+      await update(designRef, patch)
+    } catch {
+      const snapshot = await get(designRef)
+      const existing = snapshot.exists() ? (snapshot.val() as Design) : {}
+      await set(designRef, { ...existing, ...patch })
+    }
   }
 }

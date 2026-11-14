@@ -6,29 +6,46 @@ This document details the exact integration snippets to connect Part C (multipla
 
 ## 1. Firebase Setup (For Team Leader)
 
-To connect an online Firebase Realtime Database for cross-device multiplayer:
+To connect an online Firebase Realtime Database for cross-device multiplayer across separate laptops and networks:
 1. Open the [Firebase Console](https://console.firebase.google.com/) and create a new project (e.g. `space-mission-game`).
 2. Add a **Web App** (`</>`) to the project.
-3. In the left sidebar under **Build**, click **Realtime Database** -> **Create Database** (choose default region).
-4. In the **Rules** tab of your Realtime Database, configure open access for the hackathon (⚠️ **Warning**: Remove or secure after the event):
+3. In the left sidebar under **Build** -> **Authentication**, click **Get Started**, navigate to the **Sign-in method** tab, select **Anonymous**, and enable it.
+4. In the left sidebar under **Build**, click **Realtime Database** -> **Create Database** (choose your default region).
+5. In the **Rules** tab of your Realtime Database, apply the secure baseline rules from `database.rules.json`:
    ```json
    {
      "rules": {
        "rooms": {
-         ".read": true,
-         ".write": true
+         "$code": {
+           ".read": "auth != null",
+           ".write": "auth != null && (!data.exists() && newData.child('hostId').val() === auth.uid || (data.child('hostId').val() === auth.uid && !newData.exists()) || (!newData.child('players').exists()))",
+           "players": {
+             "$uid": {
+               ".write": "auth != null && (auth.uid === $uid || !newData.exists())",
+               ".validate": "newData.hasChildren(['id', 'name', 'joinedAt']) && newData.child('id').val() === $uid"
+             }
+           },
+           "design": {
+             ".write": "auth != null && data.parent().child('players').child(auth.uid).exists()"
+           }
+         }
        }
      }
    }
    ```
-5. Copy your Firebase web configuration values into a local `.env` file at the project root (never commit `.env`):
+   > 🔒 **Security Model**:
+   > - Unauthenticated requests are completely rejected (`auth != null`).
+   > - Each player's client signs in via Anonymous Auth, receiving a cryptographically verifiable UID.
+   > - Players can only modify their own profile node under `players/$uid`.
+   > - Only players currently joined in a room can write patches to `design`.
+6. Copy your Firebase web configuration values into a local `.env` file at the project root (never commit `.env`):
    ```env
    VITE_FIREBASE_API_KEY="your-api-key"
    VITE_FIREBASE_AUTH_DOMAIN="your-project.firebaseapp.com"
    VITE_FIREBASE_DATABASE_URL="https://your-project-default-rtdb.firebaseio.com"
    VITE_FIREBASE_PROJECT_ID="your-project"
    ```
-*Note: If these environment variables are absent, Part C automatically falls back to the built-in `LocalBackend` (BroadcastChannel across browser tabs) so 4 clients can be demonstrated on any laptop with zero setup.*
+*Note: If these environment variables are absent, Part C automatically falls back to the built-in `LocalBackend` (BroadcastChannel across browser tabs) so the application runs offline with zero setup.*
 
 ---
 

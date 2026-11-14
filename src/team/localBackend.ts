@@ -66,7 +66,7 @@ export class LocalBackend implements RoomBackend {
     }
   }
 
-  async createRoom(hostName: string, initialDesign: Design): Promise<{ code: string; playerId: string }> {
+  async createRoom(hostName: string, initialDesign: Design, maxPlayers: number = 4): Promise<{ code: string; playerId: string }> {
     const code = generateRoomCode()
     const playerId = `player_${Math.random().toString(36).substring(2, 9)}`
 
@@ -82,6 +82,9 @@ export class LocalBackend implements RoomBackend {
       design: initialDesign,
       players: { [playerId]: player },
       status: 'lobby',
+      maxPlayers: Math.max(2, Math.min(4, maxPlayers)),
+      hostId: playerId,
+      createdAt: Date.now(),
     }
 
     this.broadcast(state)
@@ -97,8 +100,9 @@ export class LocalBackend implements RoomBackend {
     }
 
     const playersList = Object.values(room.players)
-    if (playersList.length >= 4) {
-      throw new Error(`Room "${cleanCode}" is full (maximum 4 crew specialists).`)
+    const limit = room.maxPlayers || 4
+    if (playersList.length >= limit) {
+      throw new Error(`Room "${cleanCode}" is full (maximum ${limit} crew specialists).`)
     }
 
     const playerId = `player_${Math.random().toString(36).substring(2, 9)}`
@@ -143,7 +147,24 @@ export class LocalBackend implements RoomBackend {
     if (!room) return
 
     delete room.players[playerId]
-    this.broadcast(room)
+    if (Object.keys(room.players).length === 0) {
+      // Room empty: perform cleanup
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(`space_room_${code}`)
+        }
+      } catch {
+        // Ignore
+      }
+      memoryStore.delete(code)
+      const subs = this.subscribers.get(code)
+      if (subs) {
+        subs.clear()
+        this.subscribers.delete(code)
+      }
+    } else {
+      this.broadcast(room)
+    }
   }
 
   subscribe(code: string, callback: (state: RoomState) => void): () => void {
@@ -166,11 +187,15 @@ export class LocalBackend implements RoomBackend {
     }
   }
 
-  async writeDesign(code: string, design: Design, _byPlayerId: string): Promise<void> {
+  async writeDesign(code: string, patch: Partial<Design>, _byPlayerId: string): Promise<void> {
     const room = getStoredRoom(code)
     if (!room) return
 
-    room.design = design
+    // Field-level patch merges only modified subsystem keys, preserving independent concurrent edits
+    room.design = {
+      ...room.design,
+      ...patch,
+    }
     this.broadcast(room)
   }
 }

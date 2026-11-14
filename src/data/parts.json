@@ -1,4 +1,7 @@
 [
   { "id": "solar-panel-std", "name": "Standard Solar Array", "kind": "power", "mass": 50, "power": 300, "cost": 15, "downlinkPerDay": 0, "source": "placeholder" },
-  { "id": "antenna-hga", "name": "High Gain Parabolic Dish", "kind": "antenna", "mass": 35, "power": 50, "cost": 12, "downlinkPerDay": 1000, "source": "placeholder" }
+  { "id": "antenna-omni", "name": "Low-Gain S-Band Omni Antenna", "kind": "antenna", "mass": 8, "power": 15, "cost": 4, "downlinkPerDay": 350, "source": "Game Assumption (CubeSat/SmallSat S-band Omni)" },
+  { "id": "antenna-mga", "name": "Medium-Gain X-Band Horn Antenna", "kind": "antenna", "mass": 20, "power": 30, "cost": 8, "downlinkPerDay": 750, "source": "Game Assumption (X-band Medium Gain Horn)" },
+  { "id": "antenna-hga", "name": "High Gain Parabolic Dish", "kind": "antenna", "mass": 35, "power": 50, "cost": 12, "downlinkPerDay": 1000, "source": "Game Assumption (High-Gain Cassegrain Dish)" },
+  { "id": "antenna-ka", "name": "Deep Space Optical / Ka-Band Terminal", "kind": "antenna", "mass": 55, "power": 85, "cost": 22, "downlinkPerDay": 2500, "source": "Game Assumption (Deep Space Optical/Ka-Band)" }
 ]

@@ -12,14 +12,17 @@ export interface RoomState {
   design: Design
   players: Record<string, Player>
   status: 'lobby' | 'building' | 'complete'
+  maxPlayers?: number
+  hostId?: string
+  createdAt?: number
 }
 
 export interface RoomBackend {
-  createRoom: (hostName: string, initialDesign: Design) => Promise<{ code: string; playerId: string }>
+  createRoom: (hostName: string, initialDesign: Design, maxPlayers?: number) => Promise<{ code: string; playerId: string }>
   joinRoom: (code: string, playerName: string) => Promise<{ playerId: string; roomState: RoomState }>
   claimRole: (code: string, playerId: string, role: Role) => Promise<boolean>
   releaseRole: (code: string, playerId: string) => Promise<boolean>
   leaveRoom: (code: string, playerId: string) => Promise<void>
   subscribe: (code: string, callback: (state: RoomState) => void) => () => void
-  writeDesign: (code: string, design: Design, byPlayerId: string) => Promise<void>
+  writeDesign: (code: string, design: Partial<Design>, byPlayerId: string) => Promise<void>
 }

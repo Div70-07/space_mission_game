@@ -24,7 +24,7 @@ export function MissionPicker() {
 
   const handleConfirmAndProceed = () => {
     if (!selectedId) return
-    navigate('/build')
+    navigate('/lobby')
   }
 
   const getDifficultyBadge = (level: Mission['level']) => {
@@ -78,7 +78,7 @@ export function MissionPicker() {
             onClick={handleConfirmAndProceed}
             className="inline-flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold px-6 py-2.5 rounded-lg shadow-lg shadow-teal-950/50 transition-all duration-150 cursor-pointer font-mono text-sm self-start md:self-auto"
           >
-            <span>Proceed to Spacecraft Builder</span>
+            <span>Proceed to Crew Briefing Lobby</span>
             <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
             </svg>
@@ -235,7 +235,7 @@ export function MissionPicker() {
             onClick={handleConfirmAndProceed}
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold px-6 py-2.5 rounded-lg shadow-md transition-all font-mono text-sm cursor-pointer"
           >
-            <span>Proceed to Spacecraft Builder</span>
+            <span>Proceed to Crew Briefing Lobby</span>
             <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
             </svg>

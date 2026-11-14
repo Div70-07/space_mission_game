@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import type { Role, Instrument, Part } from '@/shared/types'
 import { gameData } from '@/data'
 import { computeTotals, checkDesign } from '@/engine'
-import { canEdit } from '@/team'
+import { canEdit, useTeamStore } from '@/team'
 import { useDesignStore } from '@/shared/designStore'
 import { ResourceBars } from './components/ResourceBars'
 import { RoleTabs } from './components/RoleTabs'
@@ -20,15 +20,24 @@ export function Builder({ assignedRole }: BuilderProps = {}) {
   const navigate = useNavigate()
   const { design, patchDesign, resetApprovals } = useDesignStore()
 
-  // Active viewing subsystem tab
-  const [activeRole, setActiveRole] = useState<Role>(assignedRole || 'science')
+  // Team store: mode and actual claimed role (used in online/local team modes)
+  const teamMode = useTeamStore((s) => s.mode)
+  const teamRole = useTeamStore((s) => s.myRole)
+
+  // Active viewing subsystem tab (default: Planner)
+  const [activeRole, setActiveRole] = useState<Role>(assignedRole || 'planner')
 
   // Optional role simulation for testing multiplayer permissions in solo mode
   const [simulatedRole, setSimulatedRole] = useState<Role | 'solo'>('solo')
 
-  // In actual multiplayer mode (assignedRole supplied), assignedRole strictly governs permissions.
-  // In solo mode, local simulation allows testing each role perspective.
-  const effectiveRole = assignedRole ?? (simulatedRole === 'solo' ? undefined : simulatedRole)
+  // In team mode (online or local), use the actual claimed team role.
+  // If a role was explicitly assigned via props (legacy/future use), that takes precedence.
+  // In solo mode, the local simulation dropdown governs permissions (undefined = full access).
+  const effectiveRole: Role | undefined =
+    assignedRole ??
+    ((teamMode === 'online' || teamMode === 'local') && teamRole ? teamRole : undefined) ??
+    (simulatedRole === 'solo' ? undefined : simulatedRole)
+
   const isAuthorizedToEdit = effectiveRole ? canEdit(effectiveRole, activeRole) : true
 
   // Find active mission from catalog
@@ -207,11 +216,12 @@ export function Builder({ assignedRole }: BuilderProps = {}) {
         />
 
         {/* Multiplayer Role Display / Solo Simulator Switcher */}
-        {assignedRole ? (
+        {/* In team mode (online/local), show actual claimed role badge */}
+        {assignedRole || ((teamMode === 'online' || teamMode === 'local') && teamRole) ? (
           <div className="flex items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-lg border border-teal-800/60 text-xs font-mono">
             <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
-            <span className="text-slate-400">Assigned Role:</span>
-            <span className="text-teal-300 font-bold uppercase">{assignedRole}</span>
+            <span className="text-slate-400">{teamMode !== 'solo' ? 'Team Role:' : 'Assigned Role:'}</span>
+            <span className="text-teal-300 font-bold uppercase">{assignedRole ?? teamRole}</span>
           </div>
         ) : (
           <div className="flex items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-800 self-start sm:self-auto text-xs font-mono">

@@ -12,7 +12,7 @@ export interface ApproveGateProps {
 }
 
 export function ApproveGate({ onLaunch, approvals: propApprovals }: ApproveGateProps) {
-  const { design, approve } = useDesignStore()
+  const { design, approve, resetApprovals } = useDesignStore()
   const mode = useTeamStore((s) => s.mode)
   const myRole = useTeamStore((s) => s.myRole)
   const players = useTeamStore((s) => s.players)
@@ -63,7 +63,17 @@ export function ApproveGate({ onLaunch, approvals: propApprovals }: ApproveGateP
         </div>
 
         {/* Solo or Specialist Approve Action */}
-        <div>
+        <div className="flex items-center gap-2">
+          {effectiveApprovals.length > 0 && (
+            <button
+              type="button"
+              onClick={() => resetApprovals()}
+              className="text-slate-400 hover:text-rose-300 font-mono text-xs px-3 py-1.5 rounded border border-slate-800 hover:border-rose-900 transition-colors cursor-pointer"
+            >
+              Reset Sign-offs
+            </button>
+          )}
+
           {mode === 'solo' ? (
             <button
               type="button"

@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { Role } from '@/shared/types'
+import type { Role, Mission } from '@/shared/types'
 import { ROLES } from '@/shared/constants'
+import { gameData } from '@/data'
 import { useDesignStore } from '@/shared/designStore'
 import { useTeamStore } from './teamStore'
 import { createRoom, joinRoom, claimRole, releaseRole, isOnlineMode } from './rooms'
@@ -16,6 +17,7 @@ export function Lobby() {
   const playerName = useTeamStore((s) => s.playerName)
   const myRole = useTeamStore((s) => s.myRole)
   const players = useTeamStore((s) => s.players)
+  const roomMaxPlayers = useTeamStore((s) => s.maxPlayers)
   const error = useTeamStore((s) => s.error)
 
   const setMode = useTeamStore((s) => s.setMode)
@@ -27,9 +29,19 @@ export function Lobby() {
 
   const [inputCode, setInputCode] = useState('')
   const [loading, setLoading] = useState(false)
+  const [maxPlayers, setMaxPlayers] = useState<number>(4)
+
+  // Resolve currently active target flight mission
+  const currentMission: Mission | undefined = useMemo(() => {
+    return gameData.missions.find((m) => m.id === design.missionId)
+  }, [design.missionId])
 
   // Handle Solo Mode
   const handlePlaySolo = () => {
+    if (!currentMission) {
+      setError('Please select a target flight mission from the catalog first.')
+      return
+    }
     setMode('solo')
     setMyRole(null)
     navigate('/build')
@@ -37,19 +49,28 @@ export function Lobby() {
 
   // Handle Create Online / Local Room
   const handleCreateRoom = async () => {
+    if (!currentMission) {
+      setError('Please select a target flight mission from the catalog before creating a team room.')
+      return
+    }
     setLoading(true)
     setError(null)
     try {
-      const res = await createRoom(playerName, design)
+      const res = await createRoom(playerName, design, maxPlayers)
       setMode(isOnlineMode ? 'online' : 'local')
-      setRoomSession(res.code, res.playerId, {
-        [res.playerId]: {
-          id: res.playerId,
-          name: playerName,
-          role: null,
-          joinedAt: Date.now(),
+      setRoomSession(
+        res.code,
+        res.playerId,
+        {
+          [res.playerId]: {
+            id: res.playerId,
+            name: playerName,
+            role: null,
+            joinedAt: Date.now(),
+          },
         },
-      })
+        maxPlayers
+      )
     } catch (err: any) {
       setError(err?.message || 'Failed to create room')
     } finally {
@@ -68,7 +89,16 @@ export function Lobby() {
     try {
       const res = await joinRoom(inputCode.trim().toUpperCase(), playerName)
       setMode(isOnlineMode ? 'online' : 'local')
-      setRoomSession(inputCode.trim().toUpperCase(), res.playerId, res.roomState.players)
+      // Sync local design store with host's mission and spacecraft parameters
+      if (res.roomState.design) {
+        useDesignStore.getState().setDesign(res.roomState.design)
+      }
+      setRoomSession(
+        inputCode.trim().toUpperCase(),
+        res.playerId,
+        res.roomState.players,
+        res.roomState.maxPlayers || 4
+      )
     } catch (err: any) {
       setError(err?.message || 'Failed to join room')
     } finally {
@@ -111,6 +141,49 @@ export function Lobby() {
         <span className="text-slate-500 hidden sm:inline">NASA Space Apps 2026</span>
       </div>
 
+      {/* Target Mission Baseline Banner */}
+      {currentMission ? (
+        <div className="bg-slate-900/90 border border-teal-900/40 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono text-xs shadow-inner">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] uppercase tracking-wider text-teal-400 bg-teal-950/80 px-2 py-0.5 rounded border border-teal-800/50">
+                ACTIVE FLIGHT MISSION
+              </span>
+              <span className="text-[10px] text-slate-400">LEVEL {currentMission.level}</span>
+            </div>
+            <h3 className="text-base font-bold text-slate-100">{currentMission.name}</h3>
+            <p className="text-xs text-slate-400 max-w-xl truncate mt-0.5">{currentMission.goal}</p>
+          </div>
+          <div className="flex items-center gap-4 self-start sm:self-auto">
+            <div className="text-right">
+              <span className="text-[10px] text-slate-400 block uppercase">Budget Limit</span>
+              <span className="text-sm font-bold text-teal-300">${currentMission.budget}M</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="px-3 py-1.5 text-xs text-slate-300 hover:text-white bg-slate-800 rounded-lg border border-slate-700 transition-colors"
+            >
+              Change Mission
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-amber-950/40 border border-amber-800/60 p-4 rounded-xl flex items-center justify-between text-xs font-mono text-amber-300">
+          <div className="flex items-center gap-2">
+            <span className="text-base">⚠</span>
+            <span>No flight mission selected. Please select a target mission profile to begin.</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-lg font-semibold transition-colors cursor-pointer"
+          >
+            ← Select Mission Profile
+          </button>
+        </div>
+      )}
+
       {/* Main Lobby View */}
       {!roomCode ? (
         <div className="bg-slate-950/90 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-8 shadow-xl">
@@ -119,7 +192,7 @@ export function Lobby() {
               MISSION CONTROL CREW LOBBY
             </h1>
             <p className="text-sm text-slate-400 mt-1">
-              Assemble a 4-person specialist team to co-design the spacecraft in real-time.
+              Configure session mode before proceeding to the spacecraft assembly workstation.
             </p>
           </div>
 
@@ -151,18 +224,19 @@ export function Lobby() {
                   SINGLE PLAYER
                 </span>
                 <h2 className="text-lg font-bold font-mono text-slate-200 mt-2">
-                  Solo Architect
+                  Solo Mission
                 </h2>
                 <p className="text-xs text-slate-400 mt-1">
-                  Design the complete mission on your own with full authority over all subsystems.
+                  Design the complete spacecraft on your own with full authority over all subsystems.
                 </p>
               </div>
               <button
                 type="button"
+                disabled={!currentMission}
                 onClick={handlePlaySolo}
-                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-teal-300 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer"
+                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-teal-300 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer disabled:opacity-50"
               >
-                Launch Solo Architect →
+                Launch Solo Mission →
               </button>
             </div>
 
@@ -176,12 +250,36 @@ export function Lobby() {
                   Create Team Room
                 </h2>
                 <p className="text-xs text-slate-400 mt-1">
-                  Generate a 4-letter mission room code and invite up to 3 crewmates to join.
+                  Host an online session for {currentMission ? `"${currentMission.name}"` : 'your mission'}.
                 </p>
+
+                {/* Capacity Selector: 2, 3, or 4 players */}
+                <div className="mt-3 pt-3 border-t border-slate-800/60 space-y-1.5">
+                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
+                    Max Player Capacity:
+                  </span>
+                  <div className="flex gap-2">
+                    {[2, 3, 4].map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => setMaxPlayers(num)}
+                        className={`flex-1 py-1 text-xs font-mono rounded border transition-all cursor-pointer ${
+                          maxPlayers === num
+                            ? 'bg-teal-500 text-slate-950 border-teal-400 font-bold shadow'
+                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                        }`}
+                      >
+                        {num} Crew
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
+
               <button
                 type="button"
-                disabled={loading}
+                disabled={loading || !currentMission}
                 onClick={handleCreateRoom}
                 className="w-full py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer disabled:opacity-50"
               >
@@ -196,10 +294,10 @@ export function Lobby() {
                   JOIN CREW
                 </span>
                 <h2 className="text-lg font-bold font-mono text-slate-200 mt-2">
-                  Join with Code
+                  Join Team Room
                 </h2>
                 <p className="text-xs text-slate-400 mt-1">
-                  Enter an existing 4-letter room code shared by your mission commander.
+                  Enter an existing 4-letter room code to collaborate with your team over the internet.
                 </p>
               </div>
               <div className="space-y-2">
@@ -227,12 +325,13 @@ export function Lobby() {
           <div className="text-center pt-2">
             <button
               type="button"
+              disabled={!currentMission}
               onClick={() => {
                 setMode('local')
                 useTeamStore.getState().cycleLocalRole()
                 navigate('/build')
               }}
-              className="text-xs font-mono text-slate-400 hover:text-teal-400 underline cursor-pointer"
+              className="text-xs font-mono text-slate-400 hover:text-teal-400 underline cursor-pointer disabled:opacity-50"
             >
               Single device? Switch to Local Pass-the-Laptop Mode →
             </button>
@@ -250,6 +349,11 @@ export function Lobby() {
               <h1 className="text-2xl font-bold font-mono text-slate-100 mt-1">
                 CREW BRIEFING ROOM
               </h1>
+              {currentMission && (
+                <p className="text-xs font-mono text-slate-400 mt-0.5">
+                  Mission Target: <strong>{currentMission.name}</strong> (${currentMission.budget}M Budget)
+                </p>
+              )}
             </div>
 
             <div className="bg-slate-900 border border-teal-500/40 px-5 py-2.5 rounded-xl flex items-center gap-3">
@@ -266,8 +370,49 @@ export function Lobby() {
             </div>
           )}
 
+          {/* Occupied and Available Player Slots */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="uppercase text-slate-400">
+                Connected Crew ({Object.keys(players).length}/{roomMaxPlayers} Filled):
+              </span>
+              <span className="text-slate-500 text-[11px]">
+                {Object.keys(players).length >= roomMaxPlayers
+                  ? 'Squadron Full'
+                  : `${roomMaxPlayers - Object.keys(players).length} Open Slot(s)`}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 font-mono text-xs">
+              {Array.from({ length: roomMaxPlayers }).map((_, idx) => {
+                const playerList = Object.values(players)
+                const player = playerList[idx]
+                return (
+                  <div
+                    key={idx}
+                    className={`p-3 rounded-lg border flex flex-col justify-between ${
+                      player
+                        ? 'bg-slate-900/90 border-teal-900/60 text-slate-200'
+                        : 'bg-slate-950/40 border-dashed border-slate-800 text-slate-600'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] text-slate-400 uppercase">Slot #{idx + 1}</span>
+                      {player && <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />}
+                    </div>
+                    <div className="font-semibold truncate">
+                      {player ? player.name : 'Open Seat'}
+                    </div>
+                    <div className="text-[10px] mt-1 text-teal-300/80 uppercase">
+                      {player ? (player.role ? player.role : 'Choosing role...') : 'Awaiting crewmate'}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
           {/* Specialist Role Claim Section */}
-          <div className="space-y-3">
+          <div className="space-y-3 pt-2">
             <h2 className="text-sm font-mono uppercase tracking-wider text-slate-300">
               Claim Your Subsystem Specialty:
             </h2>
@@ -331,32 +476,6 @@ export function Lobby() {
             </div>
           </div>
 
-          {/* Crew Members List */}
-          <div className="space-y-2 pt-2">
-            <h3 className="text-xs font-mono uppercase text-slate-400">
-              Connected Crew ({Object.keys(players).length}/4):
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {Object.values(players).map((p) => (
-                <div
-                  key={p.id}
-                  className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg flex items-center gap-2 text-xs font-mono"
-                >
-                  <span className="w-2 h-2 rounded-full bg-teal-400" />
-                  <span className="text-slate-200">{p.name}</span>
-                  {p.role && (
-                    <span className="text-[10px] bg-teal-950 text-teal-300 px-1.5 py-0.2 rounded border border-teal-800/60 uppercase">
-                      {p.role}
-                    </span>
-                  )}
-                  {p.id === playerId && (
-                    <span className="text-[10px] text-slate-500">(You)</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Action Footer */}
           <div className="border-t border-slate-800 pt-5 flex items-center justify-between">
             <button
@@ -373,7 +492,7 @@ export function Lobby() {
               onClick={() => navigate('/build')}
               className="bg-teal-500 hover:bg-teal-400 text-slate-950 font-mono font-bold text-xs px-6 py-2.5 rounded-lg transition-all shadow-lg shadow-teal-950/50 disabled:opacity-50 cursor-pointer"
             >
-              Enter Spacecraft Workstation →
+              Continue to Spacecraft Builder →
             </button>
           </div>
         </div>

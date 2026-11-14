@@ -11,8 +11,8 @@ export const backend: RoomBackend =
 
 export const isOnlineMode = firebaseAvailable && !forceLocal
 
-export async function createRoom(hostName: string, initialDesign: Design) {
-  return backend.createRoom(hostName, initialDesign)
+export async function createRoom(hostName: string, initialDesign: Design, maxPlayers: number = 4) {
+  return backend.createRoom(hostName, initialDesign, maxPlayers)
 }
 
 export async function joinRoom(code: string, playerName: string) {

@@ -1,4 +1,5 @@
 import type { Role } from '@/shared/types'
+import React from 'react'
 import { useTeamStore } from './teamStore'
 
 export interface RoleInfo {
@@ -77,8 +78,13 @@ export function canEdit(role: Role, section: string): boolean {
  * - In 'local' or 'online' mode: returns true only if the user's assigned role is authorized.
  */
 export function useCanEdit(section: string): boolean {
-  const mode = useTeamStore((s) => s.mode)
-  const myRole = useTeamStore((s) => s.myRole)
+  const isInsideRender = Boolean(
+    (React as any)?.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE?.H ||
+    (React as any)?.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?.ReactCurrentDispatcher?.current
+  )
+
+  const mode = isInsideRender ? useTeamStore((s) => s.mode) : useTeamStore.getState().mode
+  const myRole = isInsideRender ? useTeamStore((s) => s.myRole) : useTeamStore.getState().myRole
 
   if (mode === 'solo') {
     return true

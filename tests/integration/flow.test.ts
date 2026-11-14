@@ -77,8 +77,8 @@ describe('Engine Sanity with Real Data', () => {
     const expectedMass = 100 + inst1.mass + power1.mass + antenna1.mass + 50
     expect(totals.mass).toBe(expectedMass)
 
-    // Base avionics 30 + inst1.power
-    expect(totals.power).toBe(30 + inst1.power)
+    // Base avionics 30 + inst1.power + antenna1.power
+    expect(totals.power).toBe(30 + inst1.power + antenna1.power)
 
     // Cost sum
     expect(totals.cost).toBe(Number((inst1.cost + power1.cost + antenna1.cost + rocket1.cost).toFixed(2)))
