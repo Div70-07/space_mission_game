@@ -43,12 +43,12 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
   }, [design])
 
   const reqDeltaV = useMemo(() => {
-    return requiredDeltaV(design, gameData)
-  }, [design])
+    return requiredDeltaV(currentOrbit)
+  }, [currentOrbit])
 
   const availDeltaV = useMemo(() => {
-    return availableDeltaV(design, gameData)
-  }, [design])
+    return availableDeltaV(currentRocket, design.orbitId, totals.mass, design.fuelKg)
+  }, [currentRocket, design.orbitId, totals.mass, design.fuelKg])
 
   // Orbit selection handler
   const handleSelectOrbit = (orbitId: string) => {
@@ -502,18 +502,18 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
             <div className="space-y-2">
               <div className="flex justify-between py-1 border-b border-slate-800">
                 <span className="text-slate-400">Required Trajectory $\Delta v$:</span>
-                <span className="text-slate-200 font-semibold">{reqDeltaV} m/s</span>
+                <span className="text-slate-200 font-semibold">{reqDeltaV.toFixed(2)} km/s</span>
               </div>
 
               <div className="flex justify-between py-1 border-b border-slate-800">
                 <span className="text-slate-400">Available Spacecraft $\Delta v$:</span>
-                <span className="text-teal-300 font-semibold">{availDeltaV} m/s</span>
+                <span className="text-teal-300 font-semibold">{availDeltaV.toFixed(2)} km/s</span>
               </div>
 
               <div className="flex justify-between py-1">
                 <span className="text-slate-400">Delta-V Flight Margin:</span>
                 <span className={`font-semibold ${availDeltaV >= reqDeltaV ? 'text-emerald-300' : 'text-rose-400'}`}>
-                  {availDeltaV >= reqDeltaV ? '+' : ''}{availDeltaV - reqDeltaV} m/s
+                  {availDeltaV >= reqDeltaV ? '+' : ''}{(availDeltaV - reqDeltaV).toFixed(2)} km/s
                 </span>
               </div>
             </div>

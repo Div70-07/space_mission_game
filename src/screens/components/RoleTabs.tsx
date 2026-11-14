@@ -47,7 +47,7 @@ export function RoleTabs({
   targetSection,
   className = '',
 }: RoleTabsProps) {
-  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>, currentRole: Role) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>, currentRole: Role) => {
     const currentIndex = ROLES.indexOf(currentRole)
     let nextIndex = currentIndex
 
