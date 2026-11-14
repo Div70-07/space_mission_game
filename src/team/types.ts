@@ -5,12 +5,14 @@ export interface Player {
   name: string
   role: Role | null
   joinedAt: number
+  roleClaimedAt?: number
 }
 
 export interface RoomState {
   code: string
   design: Design
   players: Record<string, Player>
+  roleClaims?: Partial<Record<Role, string>>
   status: 'lobby' | 'building' | 'complete'
   maxPlayers?: number
   hostId?: string

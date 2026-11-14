@@ -3,11 +3,17 @@
     "rooms": {
       "$code": {
         ".read": "auth != null",
-        ".write": "auth != null && (!data.exists() && newData.child('hostId').val() === auth.uid || (data.child('hostId').val() === auth.uid && !newData.exists()) || (!newData.child('players').exists()))",
+        ".write": "auth != null && ((!data.exists() && newData.child('hostId').val() === auth.uid) || (data.exists() && data.child('hostId').val() === auth.uid && !newData.exists()))",
         "players": {
           "$uid": {
-            ".write": "auth != null && (auth.uid === $uid || !newData.exists())",
+            ".write": "auth != null && auth.uid === $uid",
             ".validate": "newData.hasChildren(['id', 'name', 'joinedAt']) && newData.child('id').val() === $uid"
+          }
+        },
+        "roleClaims": {
+          "$role": {
+            ".write": "auth != null && data.parent().parent().child('players').child(auth.uid).exists() && (!data.exists() || data.val() === auth.uid)",
+            ".validate": "newData.isString() && newData.val() === auth.uid"
           }
         },
         "design": {

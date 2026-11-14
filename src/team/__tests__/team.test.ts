@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { canEdit, useCanEdit } from '../roles'
 import { generateRoomCode, LocalBackend } from '../localBackend'
 import { FirebaseBackend } from '../firebaseBackend'
+import { firebaseAvailable } from '../firebase'
 import { useTeamStore } from '../teamStore'
 import { emptyDesign, useDesignStore } from '@/shared/designStore'
 import { computeTotals, checkPowerBudget } from '@/engine'
@@ -583,8 +584,322 @@ describe('Mission Selection and Lobby Navigation Flow', () => {
 
 describe('FirebaseBackend Graceful Fallback', () => {
   it('throws descriptive error when database credentials are not provisioned', async () => {
+    // When db is null, createRoom and joinRoom fail immediately
     const backend = new FirebaseBackend()
-    await expect(backend.createRoom('Host', emptyDesign, 4)).rejects.toThrow(/Firebase Database not initialized/i)
-    await expect(backend.joinRoom('TEST', 'Guest')).rejects.toThrow(/Firebase Database not initialized/i)
+    if (!firebaseAvailable) {
+      await expect(backend.createRoom('Host', emptyDesign, 4)).rejects.toThrow(/Firebase Database not initialized/i)
+      await expect(backend.joinRoom('TEST', 'Guest')).rejects.toThrow(/Firebase Database not initialized/i)
+    } else {
+      // In live Firebase environment, ensure invalid room joining throws descriptive error
+      await expect(backend.joinRoom('NONEXISTENT_ROOM_XYZ', 'Guest')).rejects.toThrow(/not found on Firebase/i)
+    }
   })
+})
+
+import { initializeApp, deleteApp } from 'firebase/app'
+import { getAuth } from 'firebase/auth'
+import { getDatabase, ref, set } from 'firebase/database'
+
+describe('FirebaseBackend Role Concurrency & Exclusivity', () => {
+  it('ensures exactly one claimant succeeds when two clients claim the same role concurrently', async () => {
+    if (!firebaseAvailable) return
+
+    const firebaseConfig = {
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    }
+
+    const appHost = initializeApp(firebaseConfig, 'testAppHost_' + Date.now())
+    const appPeer = initializeApp(firebaseConfig, 'testAppPeer_' + Date.now())
+
+    const hostBackend = new FirebaseBackend(getDatabase(appHost), getAuth(appHost))
+    const peerBackend = new FirebaseBackend(getDatabase(appPeer), getAuth(appPeer))
+
+    let roomCode = ''
+    let hostPlayerId = ''
+    let peerPlayerId = ''
+
+    try {
+      const hostRes = await hostBackend.createRoom('Commander Host', emptyDesign, 4)
+      roomCode = hostRes.code
+      hostPlayerId = hostRes.playerId
+
+      const peerRes = await peerBackend.joinRoom(roomCode, 'Specialist Peer')
+      peerPlayerId = peerRes.playerId
+
+      // Simulate genuinely concurrent role claims for 'planner'
+      const [hostClaimed, peerClaimed] = await Promise.all([
+        hostBackend.claimRole(roomCode, hostPlayerId, 'planner'),
+        peerBackend.claimRole(roomCode, peerPlayerId, 'planner'),
+      ])
+
+      // Exactly one client must succeed
+      expect(hostClaimed !== peerClaimed).toBe(true)
+      expect(Number(hostClaimed) + Number(peerClaimed)).toBe(1)
+    } finally {
+      if (roomCode) {
+        if (peerPlayerId) await peerBackend.leaveRoom(roomCode, peerPlayerId)
+        if (hostPlayerId) await hostBackend.leaveRoom(roomCode, hostPlayerId)
+      }
+      await deleteApp(appHost)
+      await deleteApp(appPeer)
+    }
+  }, 15000)
+
+  it('allows clients to claim different roles concurrently without conflict', async () => {
+    if (!firebaseAvailable) return
+
+    const firebaseConfig = {
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    }
+
+    const appHost = initializeApp(firebaseConfig, 'testAppHostDiff_' + Date.now())
+    const appPeer = initializeApp(firebaseConfig, 'testAppPeerDiff_' + Date.now())
+
+    const hostBackend = new FirebaseBackend(getDatabase(appHost), getAuth(appHost))
+    const peerBackend = new FirebaseBackend(getDatabase(appPeer), getAuth(appPeer))
+
+    let roomCode = ''
+    let hostPlayerId = ''
+    let peerPlayerId = ''
+
+    try {
+      const hostRes = await hostBackend.createRoom('Commander Host', emptyDesign, 4)
+      roomCode = hostRes.code
+      hostPlayerId = hostRes.playerId
+
+      const peerRes = await peerBackend.joinRoom(roomCode, 'Specialist Peer')
+      peerPlayerId = peerRes.playerId
+
+      // Concurrently claim different roles
+      const [hostClaimed, peerClaimed] = await Promise.all([
+        hostBackend.claimRole(roomCode, hostPlayerId, 'planner'),
+        peerBackend.claimRole(roomCode, peerPlayerId, 'engineer'),
+      ])
+
+      expect(hostClaimed).toBe(true)
+      expect(peerClaimed).toBe(true)
+    } finally {
+      if (roomCode) {
+        if (peerPlayerId) await peerBackend.leaveRoom(roomCode, peerPlayerId)
+        if (hostPlayerId) await hostBackend.leaveRoom(roomCode, hostPlayerId)
+      }
+      await deleteApp(appHost)
+      await deleteApp(appPeer)
+    }
+  }, 15000)
+
+  it('prevents a third client from overwriting an existing role claim', async () => {
+    if (!firebaseAvailable) return
+
+    const firebaseConfig = {
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    }
+
+    const appHost = initializeApp(firebaseConfig, 'testAppHost3rd_' + Date.now())
+    const appThird = initializeApp(firebaseConfig, 'testAppThird_' + Date.now())
+
+    const hostBackend = new FirebaseBackend(getDatabase(appHost), getAuth(appHost))
+    const thirdBackend = new FirebaseBackend(getDatabase(appThird), getAuth(appThird))
+
+    let roomCode = ''
+    let hostPlayerId = ''
+    let thirdPlayerId = ''
+
+    try {
+      const hostRes = await hostBackend.createRoom('Commander Host', emptyDesign, 4)
+      roomCode = hostRes.code
+      hostPlayerId = hostRes.playerId
+
+      const thirdRes = await thirdBackend.joinRoom(roomCode, 'Specialist 3')
+      thirdPlayerId = thirdRes.playerId
+
+      // Host claims 'science'
+      const hostClaimed = await hostBackend.claimRole(roomCode, hostPlayerId, 'science')
+      expect(hostClaimed).toBe(true)
+
+      // Third client attempts to claim 'science'
+      const thirdClaimed = await thirdBackend.claimRole(roomCode, thirdPlayerId, 'science')
+      expect(thirdClaimed).toBe(false)
+    } finally {
+      if (roomCode) {
+        if (thirdPlayerId) await thirdBackend.leaveRoom(roomCode, thirdPlayerId)
+        if (hostPlayerId) await hostBackend.leaveRoom(roomCode, hostPlayerId)
+      }
+      await deleteApp(appHost)
+      await deleteApp(appThird)
+    }
+  }, 15000)
+
+  it('prevents a player from releasing another player role', async () => {
+    if (!firebaseAvailable) return
+
+    const firebaseConfig = {
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    }
+
+    const appHost = initializeApp(firebaseConfig, 'testAppHostRel_' + Date.now())
+    const appPeer = initializeApp(firebaseConfig, 'testAppPeerRel_' + Date.now())
+
+    const hostBackend = new FirebaseBackend(getDatabase(appHost), getAuth(appHost))
+    const peerBackend = new FirebaseBackend(getDatabase(appPeer), getAuth(appPeer))
+
+    let roomCode = ''
+    let hostPlayerId = ''
+    let peerPlayerId = ''
+
+    try {
+      const hostRes = await hostBackend.createRoom('Commander Host', emptyDesign, 4)
+      roomCode = hostRes.code
+      hostPlayerId = hostRes.playerId
+
+      const peerRes = await peerBackend.joinRoom(roomCode, 'Specialist Peer')
+      peerPlayerId = peerRes.playerId
+
+      // Host claims 'comms'
+      await hostBackend.claimRole(roomCode, hostPlayerId, 'comms')
+
+      // Peer attempts to release host's role via method
+      await peerBackend.releaseRole(roomCode, hostPlayerId)
+
+      // Peer also attempts direct unauthorized deletion at the database node level
+      let directDeleteSucceeded = false
+      try {
+        const directRoleRef = ref(getDatabase(appPeer), `rooms/${roomCode}/roleClaims/comms`)
+        await set(directRoleRef, null)
+        directDeleteSucceeded = true
+      } catch {
+        directDeleteSucceeded = false
+      }
+      expect(directDeleteSucceeded).toBe(false)
+
+      // Peer tries to claim 'comms' (must still be occupied by host)
+      const peerClaimed = await peerBackend.claimRole(roomCode, peerPlayerId, 'comms')
+      expect(peerClaimed).toBe(false)
+    } finally {
+      if (roomCode) {
+        if (peerPlayerId) await peerBackend.leaveRoom(roomCode, peerPlayerId)
+        if (hostPlayerId) await hostBackend.leaveRoom(roomCode, hostPlayerId)
+      }
+      await deleteApp(appHost)
+      await deleteApp(appPeer)
+    }
+  }, 15000)
+
+  it('allows a released role to be claimed by another player', async () => {
+    if (!firebaseAvailable) return
+
+    const firebaseConfig = {
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    }
+
+    const appHost = initializeApp(firebaseConfig, 'testAppHostAvail_' + Date.now())
+    const appPeer = initializeApp(firebaseConfig, 'testAppPeerAvail_' + Date.now())
+
+    const hostBackend = new FirebaseBackend(getDatabase(appHost), getAuth(appHost))
+    const peerBackend = new FirebaseBackend(getDatabase(appPeer), getAuth(appPeer))
+
+    let roomCode = ''
+    let hostPlayerId = ''
+    let peerPlayerId = ''
+
+    try {
+      const hostRes = await hostBackend.createRoom('Commander Host', emptyDesign, 4)
+      roomCode = hostRes.code
+      hostPlayerId = hostRes.playerId
+
+      const peerRes = await peerBackend.joinRoom(roomCode, 'Specialist Peer')
+      peerPlayerId = peerRes.playerId
+
+      // Host claims 'planner'
+      const hostClaimed = await hostBackend.claimRole(roomCode, hostPlayerId, 'planner')
+      expect(hostClaimed).toBe(true)
+
+      // Host releases 'planner'
+      const hostReleased = await hostBackend.releaseRole(roomCode, hostPlayerId)
+      expect(hostReleased).toBe(true)
+
+      // Peer now claims the freed 'planner' role
+      const peerClaimed = await peerBackend.claimRole(roomCode, peerPlayerId, 'planner')
+      expect(peerClaimed).toBe(true)
+    } finally {
+      if (roomCode) {
+        if (peerPlayerId) await peerBackend.leaveRoom(roomCode, peerPlayerId)
+        if (hostPlayerId) await hostBackend.leaveRoom(roomCode, hostPlayerId)
+      }
+      await deleteApp(appHost)
+      await deleteApp(appPeer)
+    }
+  }, 15000)
+
+  it('synchronizes real-time role updates across multiple client subscribers', async () => {
+    if (!firebaseAvailable) return
+
+    const firebaseConfig = {
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    }
+
+    const appHost = initializeApp(firebaseConfig, 'testAppHostSub_' + Date.now())
+    const appPeer = initializeApp(firebaseConfig, 'testAppPeerSub_' + Date.now())
+
+    const hostBackend = new FirebaseBackend(getDatabase(appHost), getAuth(appHost))
+    const peerBackend = new FirebaseBackend(getDatabase(appPeer), getAuth(appPeer))
+
+    let roomCode = ''
+    let hostPlayerId = ''
+    let peerPlayerId = ''
+
+    try {
+      const hostRes = await hostBackend.createRoom('Commander Host', emptyDesign, 4)
+      roomCode = hostRes.code
+      hostPlayerId = hostRes.playerId
+
+      const peerRes = await peerBackend.joinRoom(roomCode, 'Specialist Peer')
+      peerPlayerId = peerRes.playerId
+
+      // Listen on peer side for updates
+      let lastObservedRoleOnPeer: string | null = null
+      const unsub = peerBackend.subscribe(roomCode, (state) => {
+        if (state.players && state.players[hostPlayerId]) {
+          lastObservedRoleOnPeer = state.players[hostPlayerId].role
+        }
+      })
+
+      // Host claims 'engineer'
+      await hostBackend.claimRole(roomCode, hostPlayerId, 'engineer')
+
+      // Wait up to 3 seconds for peer listener to observe the claim
+      const start = Date.now()
+      while (lastObservedRoleOnPeer !== 'engineer' && Date.now() - start < 3000) {
+        await new Promise((r) => setTimeout(r, 100))
+      }
+
+      unsub()
+      expect(lastObservedRoleOnPeer).toBe('engineer')
+    } finally {
+      if (roomCode) {
+        if (peerPlayerId) await peerBackend.leaveRoom(roomCode, peerPlayerId)
+        if (hostPlayerId) await hostBackend.leaveRoom(roomCode, hostPlayerId)
+      }
+      await deleteApp(appHost)
+      await deleteApp(appPeer)
+    }
+  }, 15000)
 })

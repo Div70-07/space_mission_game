@@ -112,11 +112,30 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 
   syncRoomState: (state) => {
     const currentPid = get().playerId
-    const myPlayer = currentPid ? state.players[currentPid] : null
+
+    // If authoritative roleClaims registry exists in state, compute synchronized players
+    let resolvedPlayers = state.players
+    if (state.roleClaims) {
+      const claims = state.roleClaims
+      resolvedPlayers = { ...state.players }
+      // Invert claims map: uid -> role
+      const uidToRole: Record<string, Role> = {}
+      for (const [r, uid] of Object.entries(claims)) {
+        if (uid) uidToRole[uid] = r as Role
+      }
+      for (const [pid, player] of Object.entries(resolvedPlayers)) {
+        const claimRole = uidToRole[pid] ?? null
+        if (player.role !== claimRole) {
+          resolvedPlayers[pid] = { ...player, role: claimRole }
+        }
+      }
+    }
+
+    const myPlayer = currentPid ? resolvedPlayers[currentPid] : null
     const updatedRole = myPlayer ? myPlayer.role : get().myRole
     set({
       roomCode: state.code,
-      players: state.players,
+      players: resolvedPlayers,
       roomStatus: state.status,
       maxPlayers: state.maxPlayers || 4,
       connected: true,
