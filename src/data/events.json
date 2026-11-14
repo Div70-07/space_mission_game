@@ -1,4 +1,51 @@
 [
-  { "id": "solar-flare", "name": "Solar Flare Event", "description": "High energy proton flux impacts spacecraft electronics.", "probability": 0.15, "impact": "Temporary telemetry degradation" },
-  { "id": "micrometeoroid", "name": "Micrometeoroid Strike", "description": "Small debris impact on outer thermal blanket.", "probability": 0.08, "impact": "Minor thermal efficiency loss" }
+  {
+    "id": "solar-storm",
+    "name": "Coronal Mass Ejection (Solar Storm)",
+    "description": "An intense solar flare releases energetic relativistic protons across the interplanetary trajectory.",
+    "probability": 0.22,
+    "impact": "Solar array photo-voltaic cells sustain 8% permanent lattice degradation; avionics shielded."
+  },
+  {
+    "id": "communication-dropout",
+    "name": "Deep Space Network (DSN) Ground Station Dropout",
+    "description": "Severe weather at Goldstone tracking station temporarily interrupts telemetry downlink pass.",
+    "probability": 0.18,
+    "impact": "Downlink suspended for 36 hours; solid-state recorder buffer prevented science data loss."
+  },
+  {
+    "id": "power-degradation",
+    "name": "Solar Array Drive Mechanism Stiction & Dust Accumulation",
+    "description": "Drive motor encounters mechanical resistance reducing optimal sun-tracking pointing accuracy.",
+    "probability": 0.14,
+    "impact": "Effective power generation reduced by 25 Watts until thermal cycling resolved pointing."
+  },
+  {
+    "id": "instrument-malfunction",
+    "name": "Optical Imager Cryocooler Thermal Anomaly",
+    "description": "Sensor detector focal plane array temperature elevated above cryogenic calibration threshold.",
+    "probability": 0.12,
+    "impact": "Autonomous flight software initiated automated sensor bakeout cycle for 5 days."
+  },
+  {
+    "id": "scientific-discovery",
+    "name": "Breakthrough Subsurface Volatile Water Ice Detection",
+    "description": "Orbital radar sounding echo returns definitive signature of buried pure water-ice glacier.",
+    "probability": 0.25,
+    "impact": "Major scientific milestone achieved! Mission science yield awarded bonus peer-review priority."
+  },
+  {
+    "id": "orbital-decay",
+    "name": "Upper Atmospheric Drag Transient",
+    "description": "Solar atmospheric heating expands thermosphere density, causing minor orbital periapsis altitude decay.",
+    "probability": 0.15,
+    "impact": "Spacecraft executed an automated 6 m/s orbital re-boost burn consuming 5 kg of fuel."
+  },
+  {
+    "id": "star-tracker-glare",
+    "name": "Attitude Star Tracker Straylight Glare",
+    "description": "Scattered solar reflections off thermal blankets temporarily blind primary star sensor cameras.",
+    "probability": 0.10,
+    "impact": "Attitude determination handed over to gyroscopic inertial measurement units seamlessly."
+  }
 ]

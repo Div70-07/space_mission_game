@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="skyLaunchGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="35%" stop-color="#0f172a"/>
+      <stop offset="65%" stop-color="#1e293b"/>
+      <stop offset="85%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#fdba74"/>
+    </linearGradient>
+    <linearGradient id="plumeGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="15%" stop-color="#fef08a"/>
+      <stop offset="45%" stop-color="#f97316"/>
+      <stop offset="80%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#7c2d12" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="smokeGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8"/>
+      <stop offset="40%" stop-color="#94a3b8" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#475569" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Twilight Sky Gradient -->
+  <rect width="800" height="500" fill="url(#skyLaunchGrad)"/>
+
+  <!-- Stars in upper stratosphere -->
+  <g fill="#ffffff" opacity="0.65">
+    <circle cx="80" cy="40" r="1.1"/>
+    <circle cx="210" cy="25" r="1.4"/>
+    <circle cx="340" cy="60" r="0.8"/>
+    <circle cx="580" cy="30" r="1.2"/>
+    <circle cx="710" cy="55" r="1.5"/>
+    <circle cx="750" cy="110" r="0.9"/>
+  </g>
+
+  <!-- Distant Launch Horizon / Shoreline -->
+  <path d="M 0 460 Q 300 450 800 455 L 800 500 L 0 500 Z" fill="#0f172a"/>
+  <rect x="0" y="475" width="800" height="25" fill="#022c22" opacity="0.7"/>
+
+  <!-- Launch Pad Complex (Pad 39A / SLC-40 style) -->
+  <g transform="translate(400, 465)">
+    <!-- Pad Concrete Deck -->
+    <rect x="-90" y="-12" width="180" height="15" fill="#334155" rx="2"/>
+    <!-- Service Gantry Structure -->
+    <line x1="-55" y1="-12" x2="-55" y2="-120" stroke="#64748b" stroke-width="3.5"/>
+    <line x1="-35" y1="-12" x2="-35" y2="-120" stroke="#64748b" stroke-width="3.5"/>
+    <line x1="-55" y1="-120" x2="-35" y2="-120" stroke="#64748b" stroke-width="3.5"/>
+    <!-- Truss Crossbraces -->
+    <line x1="-55" y1="-12" x2="-35" y2="-32" stroke="#64748b" stroke-width="1.8"/>
+    <line x1="-35" y1="-12" x2="-55" y2="-32" stroke="#64748b" stroke-width="1.8"/>
+    <line x1="-55" y1="-32" x2="-35" y2="-52" stroke="#64748b" stroke-width="1.8"/>
+    <line x1="-35" y1="-32" x2="-55" y2="-52" stroke="#64748b" stroke-width="1.8"/>
+    <line x1="-55" y1="-52" x2="-35" y2="-72" stroke="#64748b" stroke-width="1.8"/>
+    <line x1="-35" y1="-52" x2="-55" y2="-72" stroke="#64748b" stroke-width="1.8"/>
+    <line x1="-55" y1="-72" x2="-35" y2="-92" stroke="#64748b" stroke-width="1.8"/>
+    <line x1="-35" y1="-72" x2="-55" y2="-92" stroke="#64748b" stroke-width="1.8"/>
+    <!-- Retracted Crew Access Arm -->
+    <line x1="-35" y1="-100" x2="-15" y2="-95" stroke="#94a3b8" stroke-width="2.5"/>
+    <!-- Floodlights -->
+    <circle cx="-55" cy="-115" r="3" fill="#fef08a"/>
+    <circle cx="-35" cy="-115" r="3" fill="#fef08a"/>
+  </g>
+
+  <!-- Expanding Smoke Billows (Pad Deck level) -->
+  <circle cx="340" cy="460" r="45" fill="url(#smokeGlow)"/>
+  <circle cx="460" cy="460" r="50" fill="url(#smokeGlow)"/>
+  <circle cx="300" cy="470" r="38" fill="url(#smokeGlow)"/>
+  <circle cx="500" cy="470" r="42" fill="url(#smokeGlow)"/>
+
+  <!-- Ascending Launch Vehicle Stack -->
+  <g transform="translate(425, 230) rotate(14)">
+    <!-- Exhaust Fire Plume -->
+    <g transform="translate(0, 75)">
+      <polygon points="-12,0 0,160 12,0" fill="url(#plumeGrad)"/>
+      <polygon points="-6,0 0,110 6,0" fill="#ffffff" opacity="0.9"/>
+      <!-- Supersonic shock diamonds -->
+      <ellipse cx="0" cy="20" rx="3" ry="5" fill="#ffffff"/>
+      <ellipse cx="0" cy="40" rx="2.5" ry="4.5" fill="#ffffff"/>
+      <ellipse cx="0" cy="62" rx="2" ry="4" fill="#ffffff"/>
+      <ellipse cx="0" cy="85" rx="1.5" ry="3.5" fill="#ffffff"/>
+    </g>
+
+    <!-- Rocket Core Booster -->
+    <rect x="-11" y="-45" width="22" height="120" rx="1" fill="#f8fafc" stroke="#334155" stroke-width="1.5"/>
+    <!-- Shadow Gradient on Hull -->
+    <rect x="2" y="-45" width="9" height="120" fill="#0f172a" opacity="0.18"/>
+
+    <!-- Interstage Ring -->
+    <rect x="-11" y="-12" width="22" height="6" fill="#0f172a"/>
+
+    <!-- Payload Fairing (Nosecone) -->
+    <path d="M -11 -45 Q -11 -82 0 -96 Q 11 -82 11 -45 Z" fill="#e2e8f0" stroke="#334155" stroke-width="1.5"/>
+
+    <!-- Titanium Grid Fins -->
+    <rect x="-16" y="-35" width="5" height="4" fill="#475569"/>
+    <rect x="11" y="-35" width="5" height="4" fill="#475569"/>
+
+    <!-- Engine Nozzle Skirt -->
+    <polygon points="-8,75 8,75 10,85 -10,85" fill="#1e293b"/>
+  </g>
+
+  <!-- Condensation Vapor Cloud (Transonic Shockwave Ring) -->
+  <g transform="translate(425, 185) rotate(14)">
+    <ellipse cx="0" cy="0" rx="35" ry="10" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.6"/>
+  </g>
+
+  <!-- Telemetry HUD Overlay -->
+  <g font-family="'Courier New', monospace" font-size="12" fill="#94a3b8">
+    <text x="24" y="36" fill="#fbbf24" font-weight="bold">LAUNCH OPERATIONS // LIFTOFF</text>
+    <text x="24" y="54">FLIGHT PHASE: TRANSONIC ASCENT (MAX-Q)</text>
+    <text x="24" y="72">THRUST: 7,607 kN // 9 MERLIN 1D VAC ENGINES</text>
+  </g>
+</svg>

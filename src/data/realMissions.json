@@ -1,4 +1,32 @@
 [
-  { "id": "lro", "name": "Lunar Reconnaissance Orbiter (LRO)", "summary": "NASA robotic mission orbiting the Moon mapping surface features and potential resources.", "link": "https://www.nasa.gov/mission_pages/LRO/main/index.html" },
-  { "id": "maven", "name": "MAVEN Mars Orbiter", "summary": "Explores Mars upper atmosphere and ionosphere, interactions with the sun and solar wind.", "link": "https://www.nasa.gov/mission_pages/maven/main/index.html" }
+  {
+    "id": "landsat-9",
+    "name": "Landsat 9 (NASA / USGS)",
+    "summary": "NASA and USGS flagship Earth observing mission in Sun-Synchronous Orbit (SSO) continuing a half-century baseline of multispectral terrestrial imagery, agricultural monitoring, and global climate tracking.",
+    "link": "https://science.nasa.gov/mission/landsat-9/"
+  },
+  {
+    "id": "lro",
+    "name": "Lunar Reconnaissance Orbiter (LRO - NASA)",
+    "summary": "NASA robotic orbiter in Low Lunar Orbit (LLO - Moon) mapping high-resolution surface topography, permanently shadowed polar water ice deposits, radiation hazards, and potential Artemis landing sites.",
+    "link": "https://science.nasa.gov/mission/lro/"
+  },
+  {
+    "id": "mro",
+    "name": "Mars Reconnaissance Orbiter (MRO - NASA)",
+    "summary": "NASA heavy science orbiter at Mars equipped with the HiRISE camera and SHARAD radar, conducting atmospheric profiling, searching for evidence of subsurface water ice, and providing vital deep-space relay comms.",
+    "link": "https://science.nasa.gov/mission/mro/"
+  },
+  {
+    "id": "maven",
+    "name": "MAVEN (Mars Atmosphere and Volatile EvolutioN - NASA)",
+    "summary": "NASA Mars orbiter investigating the dramatic loss of historical atmosphere and volatile water to space over cosmic time due to solar wind stripping and coronal mass ejection interactions.",
+    "link": "https://science.nasa.gov/mission/maven/"
+  },
+  {
+    "id": "terra",
+    "name": "Terra EOS AM-1 (NASA)",
+    "summary": "Flagship multi-instrument Earth observing satellite in polar Sun-Synchronous Orbit monitoring terrestrial vegetation dynamics, aerosol optical depth, carbon cycle fluxes, and planetary energy balance.",
+    "link": "https://terra.nasa.gov/"
+  }
 ]
