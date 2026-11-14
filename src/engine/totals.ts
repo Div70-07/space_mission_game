@@ -3,7 +3,6 @@ import type { Design, GameData, Totals } from '../shared/types';
 
 export function computeTotals(design: Design | undefined, data: GameData | undefined): Totals {
   const fallback: Totals = {
-    netPowerWatts: 0,
     mass: 0,
     power: 0,
     cost: 0,
@@ -33,8 +32,6 @@ export function computeTotals(design: Design | undefined, data: GameData | undef
   const baseAvionicsPower = 30; // Flight computer & attitude control
   const instrumentsPower = selectedInstruments.reduce((sum, i) => sum + i.power, 0);
   const totalPowerConsumption = baseAvionicsPower + instrumentsPower;
-  const powerGenerated = powerSystem?.power ?? 0; // Solar panels or RTG
-  const netPowerWatts = powerGenerated - totalPowerConsumption;
 
   // 3. Cost calculation (million USD)
   const instrumentsCost = selectedInstruments.reduce((sum, i) => sum + i.cost, 0);
@@ -50,7 +47,6 @@ export function computeTotals(design: Design | undefined, data: GameData | undef
   return {
     mass: Math.round(totalMass),
     power: Math.round(totalPowerConsumption),
-    netPowerWatts: Math.round(netPowerWatts),
     cost: Number(totalCost.toFixed(2)),
     dataPerDay: Math.round(dataPerDay),
     downlinkPerDay: Math.round(downlinkPerDay),

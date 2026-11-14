@@ -24,7 +24,8 @@ export function calculateScore(
 
   // 3. Technical safety margin (up to 20 pts)
   let safetyScore = 15;
-  if (totals.netPowerWatts >= 50) safetyScore += 3;
+  const netPower = (totals as any).netPowerWatts ?? totals.power;
+  if (netPower >= 50) safetyScore += 3;
   if (totals.downlinkPerDay >= totals.dataPerDay * 1.2) safetyScore += 2;
 
   // 4. Teamwork bonus (all 4 roles approved = +10 pts)

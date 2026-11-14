@@ -1,6 +1,6 @@
 // src/engine/launch.ts
 import type { Orbit, Rocket, Totals } from '../shared/types';
-import { availableDeltaV, requiredDeltaV } from './deltaV';
+import { requiredDeltaV } from './deltaV'; // Removed unused availableDeltaV
 
 export interface LaunchCheckResult {
   ok: boolean;
