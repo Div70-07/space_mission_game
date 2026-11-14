@@ -32,6 +32,18 @@ export function requiredDeltaV(orbit: Orbit | undefined): number {
 
 /**
  * Calculates Available Delta-V (km/s) using rocket payload capacity & spacecraft fuel.
+ *
+ * GAME DESIGN NOTE — Launch vehicle model:
+ *   `rocketDeltaV = 14.0 × √massRatio` is a **simplified game heuristic**, NOT real
+ *   launch vehicle physics. It produces a plausible delivery Δv that decreases as the
+ *   spacecraft approaches the rocket's payload limit. Real launch vehicles are sized by
+ *   their own propellant load (Tsiolkovsky applied to the whole stack), which is not
+ *   exposed in this game's data model.
+ *
+ * GAME DESIGN NOTE — Onboard propulsion:
+ *   Spacecraft Δv uses the Tsiolkovsky rocket equation with Isp = 310 s (monopropellant
+ *   hydrazine). This is consistent with small attitude-control / orbit-trim systems. It
+ *   does NOT represent the launch vehicle's main engine.
  */
 export function availableDeltaV(
   rocket: Rocket | undefined,
@@ -44,15 +56,17 @@ export function availableDeltaV(
   const maxCapacity = rocket.payloadByOrbit[orbitId] ?? 3000;
   if (totalMassKg <= 0 || totalMassKg > maxCapacity * 1.5) return 0;
 
-  // Base launch vehicle delta-V delivery
+  // Base launch vehicle delta-V delivery (game heuristic — see note above)
   const massRatio = Math.max(0.1, 1 - totalMassKg / (maxCapacity * 1.3));
   const rocketDeltaV = 14.0 * Math.sqrt(massRatio);
 
-  // Spacecraft onboard propulsion delta-V (Tsiolkovsky: Isp = 310s hydrazine)
+  // Spacecraft onboard propulsion delta-V (Tsiolkovsky: Isp = 310 s hydrazine)
+  // Guard edge cases that would produce NaN or Infinity.
   let spacecraftDeltaV = 0;
-  if (fuelKg > 0 && totalMassKg > fuelKg) {
-    const dryMass = totalMassKg - fuelKg;
-    spacecraftDeltaV = (310 * 9.81 * Math.log(totalMassKg / dryMass)) / 1000; // in km/s
+  const safeFuel = Math.max(0, fuelKg);           // clamp negative fuel to 0
+  if (safeFuel > 0 && totalMassKg > safeFuel) {   // dry mass must be > 0
+    const dryMass = totalMassKg - safeFuel;
+    spacecraftDeltaV = (310 * 9.81 * Math.log(totalMassKg / dryMass)) / 1000; // km/s
   }
 
   return Number((rocketDeltaV + spacecraftDeltaV).toFixed(2));

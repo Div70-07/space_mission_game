@@ -19,7 +19,9 @@ export function checkPowerBudget(
   // Inverse square law: Mars is 1.524 AU from Sun -> 1 / (1.524^2) = ~0.43
   const solarFactor = isMars ? (isRTG ? 1.0 : 0.43) : 1.0;
 
-  const grossGeneration = powerSystem ? Math.round(powerSystem.power * solarFactor) : 0;
+  const grossGeneration = powerSystem
+    ? Math.round(Math.max(0, powerSystem.power) * solarFactor)  // guard: clamp negative power spec to 0
+    : 0;
   const netPowerWatts = grossGeneration - totals.power;
   const ok = netPowerWatts >= 0 && grossGeneration > 0;
 

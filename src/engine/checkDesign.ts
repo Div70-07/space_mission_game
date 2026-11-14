@@ -31,9 +31,11 @@ export function checkDesign(design: Design, data: GameData): Check[] {
     {
       id: 'mass',
       ok: launchRes.ok,
+      // Use launchRes.message directly so "no rocket selected" is never reported
+      // as "Over mass by 0 kg" – the message already distinguishes the two cases.
       message: launchRes.ok
         ? `Mass ok (${totals.mass} kg <= ${launchRes.maxPayload} kg)`
-        : `Over mass by ${Math.abs(launchRes.marginKg)} kg for chosen rocket.`,
+        : launchRes.message,
     },
     {
       id: 'power',

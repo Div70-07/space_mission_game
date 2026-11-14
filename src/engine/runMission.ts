@@ -3,6 +3,7 @@ import type { Design, GameData, SimResult } from '../shared/types';
 import { createRNG } from './rng';
 import { computeTotals } from './totals';
 import { checkDesign } from './checkDesign';
+import { checkPowerBudget } from './power';
 import { generateEvents } from './events';
 import { calculateScore } from './scoring';
 import { generateReport } from './report';
@@ -18,6 +19,7 @@ export function runMission(
 
   const mission = data.missions.find(m => m.id === design.missionId);
   const orbit = data.orbits.find(o => o.id === design.orbitId);
+  const powerSystem = data.parts.find(p => p.id === design.powerSystemId);
   const selectedInstruments = data.instruments.filter(i =>
     (design.instrumentIds || []).includes(i.id)
   );
@@ -25,9 +27,12 @@ export function runMission(
   // Success requires all 8 checks to pass
   const success = checks.every(c => c.ok);
 
+  // Compute net power separately so calculateScore receives the real margin, not the draw
+  const powerRes = checkPowerBudget(totals, orbit, powerSystem);
+
   // Events & scoring
   const events = generateEvents(orbit, totals, rng, data.events);
-  const score = calculateScore(design, mission, totals, success, selectedInstruments);
+  const score = calculateScore(design, mission, totals, success, selectedInstruments, powerRes.netPowerWatts);
   const { reasons, similarRealMission } = generateReport(checks, orbit, mission, data);
 
   return {
