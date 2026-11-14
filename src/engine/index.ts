@@ -1,11 +1,12 @@
-// Part A: Engine and scoring public door
-import type { Check, Design, GameData } from '@/shared/types'
-import { computeTotals } from './totals'
-import { requiredDeltaV, availableDeltaV } from './deltaV'
-import { runMission } from './runMission'
-
-export { computeTotals, requiredDeltaV, availableDeltaV, runMission }
-
-export function checkDesign(_design: Design, _data: GameData): Check[] {
-  return [{ id: 'mass', ok: true, message: 'placeholder' }]
-}
+// src/engine/index.ts
+export { computeTotals } from './totals';
+export { checkDesign } from './checkDesign';
+export { requiredDeltaV, availableDeltaV, GMAT_DELTA_V_BENCHMARKS } from './deltaV';
+export { checkLaunch, checkOrbit } from './launch';
+export { checkPowerBudget } from './power';
+export { checkCommsBudget } from './comms';
+export { generateEvents } from './events';
+export { calculateScore } from './scoring';
+export { runMission } from './runMission';
+export { createRNG } from './rng';
+export { generateReport } from './report';
