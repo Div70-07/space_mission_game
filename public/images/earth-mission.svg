@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <defs>
+    <radialGradient id="spaceBg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#0b1329"/>
+      <stop offset="60%" stop-color="#050814"/>
+      <stop offset="100%" stop-color="#020308"/>
+    </radialGradient>
+    <radialGradient id="earthAtmosphere" cx="50%" cy="50%" r="50%">
+      <stop offset="75%" stop-color="#0284c7" stop-opacity="0"/>
+      <stop offset="90%" stop-color="#38bdf8" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#7dd3fc" stop-opacity="0.8"/>
+    </radialGradient>
+    <radialGradient id="earthSurface" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="40%" stop-color="#0369a1"/>
+      <stop offset="85%" stop-color="#075985"/>
+      <stop offset="100%" stop-color="#082f49"/>
+    </radialGradient>
+    <linearGradient id="solarPanel" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="50%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+    <linearGradient id="scanBeam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0.05"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Deep Space Canvas -->
+  <rect width="800" height="500" fill="url(#spaceBg)"/>
+
+  <!-- Distant Stars -->
+  <g fill="#ffffff" opacity="0.6">
+    <circle cx="45" cy="80" r="1.2"/>
+    <circle cx="120" cy="40" r="0.8"/>
+    <circle cx="210" cy="110" r="1.5"/>
+    <circle cx="340" cy="65" r="0.9"/>
+    <circle cx="480" cy="35" r="1.3"/>
+    <circle cx="620" cy="90" r="0.7"/>
+    <circle cx="730" cy="45" r="1.4"/>
+    <circle cx="60" cy="340" r="0.9"/>
+    <circle cx="150" cy="420" r="1.1"/>
+    <circle cx="710" cy="390" r="1.2"/>
+  </g>
+
+  <!-- Earth Limb (Lower Left) -->
+  <g transform="translate(180, 560)">
+    <!-- Atmosphere Glow Ring -->
+    <circle cx="0" cy="0" r="340" fill="url(#earthAtmosphere)"/>
+    <!-- Earth Globe Body -->
+    <circle cx="0" cy="0" r="320" fill="url(#earthSurface)"/>
+    <!-- Landmass Continents -->
+    <path d="M -180 -260 Q -100 -280 0 -240 Q 80 -270 160 -210 Q 110 -150 10 -180 Q -90 -160 -180 -260 Z" fill="#15803d" opacity="0.85"/>
+    <path d="M -60 -150 Q 40 -120 120 -140 Q 180 -80 140 -20 Q 50 -60 -60 -150 Z" fill="#854d0e" opacity="0.8"/>
+    <!-- Cloud Swirls -->
+    <path d="M -220 -220 Q -80 -260 80 -220 Q 200 -240 260 -180" stroke="#ffffff" stroke-width="22" stroke-linecap="round" fill="none" opacity="0.45"/>
+    <path d="M -120 -180 Q 20 -210 160 -160" stroke="#ffffff" stroke-width="14" stroke-linecap="round" fill="none" opacity="0.35"/>
+  </g>
+
+  <!-- Orbital Trajectory Line -->
+  <ellipse cx="440" cy="270" rx="340" ry="190" fill="none" stroke="#2dd4bf" stroke-width="1.5" stroke-dasharray="8 6" opacity="0.4" transform="rotate(-18 440 270)"/>
+
+  <!-- Scanning Swath (Satellite to Earth) -->
+  <polygon points="520,165 240,360 380,380" fill="url(#scanBeam)"/>
+
+  <!-- Earth Observing Spacecraft (Upper Center-Right) -->
+  <g transform="translate(520, 160) rotate(-22)">
+    <!-- Main Satellite Bus -->
+    <rect x="-18" y="-18" width="36" height="36" rx="3" fill="#fbbf24" stroke="#d97706" stroke-width="1.5"/>
+    <!-- Foil Grid Pattern -->
+    <line x1="-18" y1="-6" x2="18" y2="-6" stroke="#d97706" stroke-width="0.8"/>
+    <line x1="-18" y1="6" x2="18" y2="6" stroke="#d97706" stroke-width="0.8"/>
+    <line x1="-6" y1="-18" x2="-6" y2="18" stroke="#d97706" stroke-width="0.8"/>
+    <line x1="6" y1="-18" x2="6" y2="18" stroke="#d97706" stroke-width="0.8"/>
+
+    <!-- Left Solar Wing -->
+    <g transform="translate(-76, -15)">
+      <rect x="0" y="0" width="54" height="30" rx="2" fill="url(#solarPanel)" stroke="#38bdf8" stroke-width="1.2"/>
+      <line x1="18" y1="0" x2="18" y2="30" stroke="#ffffff" stroke-width="0.7" opacity="0.6"/>
+      <line x1="36" y1="0" x2="36" y2="30" stroke="#ffffff" stroke-width="0.7" opacity="0.6"/>
+      <!-- Boom attachment -->
+      <line x1="54" y1="15" x2="58" y2="15" stroke="#94a3b8" stroke-width="3"/>
+    </g>
+
+    <!-- Right Solar Wing -->
+    <g transform="translate(22, -15)">
+      <rect x="0" y="0" width="54" height="30" rx="2" fill="url(#solarPanel)" stroke="#38bdf8" stroke-width="1.2"/>
+      <line x1="18" y1="0" x2="18" y2="30" stroke="#ffffff" stroke-width="0.7" opacity="0.6"/>
+      <line x1="36" y1="0" x2="36" y2="30" stroke="#ffffff" stroke-width="0.7" opacity="0.6"/>
+      <!-- Boom attachment -->
+      <line x1="-4" y1="15" x2="0" y2="15" stroke="#94a3b8" stroke-width="3"/>
+    </g>
+
+    <!-- High Gain Antenna Dish -->
+    <path d="M -12 -18 Q 0 -32 12 -18" fill="none" stroke="#e2e8f0" stroke-width="2.5"/>
+    <line x1="0" y1="-18" x2="0" y2="-27" stroke="#e2e8f0" stroke-width="1.5"/>
+    <circle cx="0" cy="-27" r="1.5" fill="#38bdf8"/>
+
+    <!-- Optical Telescope Sensor Barrel -->
+    <rect x="-7" y="18" width="14" height="12" fill="#334155" stroke="#64748b" stroke-width="1"/>
+    <ellipse cx="0" cy="30" rx="7" ry="2.5" fill="#38bdf8"/>
+  </g>
+
+  <!-- Telemetry HUD Label Overlay -->
+  <g font-family="'Courier New', monospace" font-size="12" fill="#94a3b8">
+    <text x="24" y="36" fill="#2dd4bf" font-weight="bold">NASA // EARTH OBSERVATION MISSION</text>
+    <text x="24" y="54">ORBIT: SUN-SYNCHRONOUS (SSO 705 km)</text>
+    <text x="24" y="72">PAYLOAD: MULTISPECTRAL IMAGER &amp; CALIOP LIDAR</text>
+  </g>
+</svg>

@@ -1,4 +1,38 @@
 [
-  { "id": "leo", "name": "Low Earth Orbit (LEO)", "altitudeKm": 400, "info": "Low altitude, rapid ground passes, moderate radiation." },
-  { "id": "gto", "name": "Geostationary Transfer Orbit (GTO)", "altitudeKm": 35786, "info": "Elliptical transfer orbit requiring onboard apogee burn." }
+  {
+    "id": "leo",
+    "name": "Low Earth Orbit (LEO)",
+    "altitudeKm": 400,
+    "info": "Circular 400 km altitude with 51.6° inclination. Rapid 92-minute orbital period, moderate radiation, frequent Earth ground station passes."
+  },
+  {
+    "id": "sso",
+    "name": "Sun-Synchronous Polar Orbit (SSO)",
+    "altitudeKm": 705,
+    "info": "Circular 705 km polar orbit with 98.2° inclination. Consistent solar illumination angle across daytime passes, optimal for Earth climate and land-cover imaging."
+  },
+  {
+    "id": "gto",
+    "name": "Geostationary Transfer Orbit (GTO)",
+    "altitudeKm": 35786,
+    "info": "Highly eccentric elliptical orbit with 250 km perigee and 35,786 km apogee. Gateway trajectory requiring onboard propulsion for orbit circularization or planetary escape."
+  },
+  {
+    "id": "geo",
+    "name": "Geostationary Earth Orbit (GEO)",
+    "altitudeKm": 35786,
+    "info": "Circular equatorial orbit at 35,786 km altitude matching Earth's rotational period. Spacecraft remains stationary over a fixed longitude, ideal for continuous weather tracking."
+  },
+  {
+    "id": "moon-llo",
+    "name": "Low Lunar Orbit (LLO - Moon)",
+    "altitudeKm": 100,
+    "info": "Circular 100 km polar orbit around the Moon. Direct overhead access to permanently shadowed lunar south pole craters; requires orbital stationkeeping against mascon gravity anomalies."
+  },
+  {
+    "id": "mars-low",
+    "name": "Low Mars Science Orbit (Mars)",
+    "altitudeKm": 300,
+    "info": "Sun-synchronous 300 km science orbit around Mars. Solar irradiance drops to 43% of Earth levels (1.524 AU); deep space radio signals experience 4 to 21 minute round-trip light time."
+  }
 ]

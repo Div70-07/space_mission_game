@@ -1,4 +1,87 @@
 [
-  { "id": "moon-orbiter", "name": "Moon orbiter", "goal": "Map lunar polar water ice deposits", "budget": 250, "lifetimeMonths": 24, "orbitIds": ["leo", "gto"], "minScience": 120, "level": 1 },
-  { "id": "mars-orbiter", "name": "Mars orbiter", "goal": "Study atmospheric methane cycles and climate", "budget": 450, "lifetimeMonths": 36, "orbitIds": ["gto"], "minScience": 150, "level": 2 }
+  {
+    "id": "earth-observer",
+    "name": "Earth Climate & Terrestrial Observer",
+    "goal": "Monitor global vegetation health, land-use dynamics, and atmospheric greenhouse gas concentrations.",
+    "description": "Deploy an advanced Earth-observing satellite into polar Sun-Synchronous Orbit (SSO) to conduct high-resolution multispectral imaging and atmospheric lidar soundings.",
+    "objective": "Deliver uninterrupted multispectral land and cloud imagery across repeat orbits to support global climate and agriculture monitoring.",
+    "difficulty": "Beginner",
+    "budget": 180,
+    "targetDestination": "Earth",
+    "recommendedOrbit": "sso",
+    "lifetimeMonths": 36,
+    "missionDuration": "36 Months (3 Years Primary Mission)",
+    "scienceObjectives": [
+      "Global Normalized Difference Vegetation Index (NDVI) mapping",
+      "Atmospheric aerosol and greenhouse gas column profiling",
+      "Thermal land surface temperature tracking"
+    ],
+    "allowedInstruments": [
+      "camera-highres",
+      "spectrometer-ir",
+      "radar-altimeter",
+      "thermal-radiometer",
+      "atmospheric-lidar"
+    ],
+    "orbitIds": ["sso", "leo"],
+    "minScience": 130,
+    "level": 1
+  },
+  {
+    "id": "moon-orbiter",
+    "name": "Lunar Polar Prospector & Water Ice Explorer",
+    "goal": "Map volatile water ice deposits in permanently shadowed polar craters and quantify the lunar gravitational field.",
+    "description": "Place a robotic research probe into a 100 km polar orbit around the Moon to map surface minerals, measure neutron flux signatures of water ice, and assess Artemis landing sites.",
+    "objective": "Identify high-confidence hydrogen concentrations in permanently shadowed regions of the lunar south pole and generate high-precision topographical maps.",
+    "difficulty": "Intermediate",
+    "budget": 260,
+    "targetDestination": "Moon",
+    "recommendedOrbit": "moon-llo",
+    "lifetimeMonths": 24,
+    "missionDuration": "24 Months (2 Years Lunar Operations)",
+    "scienceObjectives": [
+      "Epithermal neutron detection of subsurface hydrogen deposits (>100 ppm)",
+      "Sub-meter polar crater topography and geodetic altimetry",
+      "Thermal infrared radiometric mapping of cryogenic cold traps"
+    ],
+    "allowedInstruments": [
+      "neutron-spectrometer",
+      "thermal-radiometer",
+      "radar-altimeter",
+      "camera-highres",
+      "spectrometer-ir"
+    ],
+    "orbitIds": ["moon-llo", "gto"],
+    "minScience": 140,
+    "level": 2
+  },
+  {
+    "id": "mars-orbiter",
+    "name": "Mars Atmospheric Evolution & Climate Surveyor",
+    "goal": "Quantify atmospheric escape mechanisms, solar wind interaction, and seasonal subsurface water ice reservoirs.",
+    "description": "Execute interplanetary cruise to Mars, perform Mars Orbit Insertion (MOI) into a 300 km science orbit, and examine the Martian ionosphere and shallow subsurface ice layers.",
+    "objective": "Measure the modern rate of atmospheric escape caused by solar wind stripping and sound polar subsurface ice sheets to 100 meters depth.",
+    "difficulty": "Advanced",
+    "budget": 420,
+    "targetDestination": "Mars",
+    "recommendedOrbit": "mars-low",
+    "lifetimeMonths": 36,
+    "missionDuration": "36 Months (Interplanetary Cruise + Orbital Science)",
+    "scienceObjectives": [
+      "Solar wind magnetic interaction and upper atmosphere ion loss rate measurement",
+      "Shallow subsurface ice sheet detection via radar sounding",
+      "Atmospheric infrared and ultraviolet trace gas seasonal monitoring"
+    ],
+    "allowedInstruments": [
+      "mag-plasma",
+      "subsurface-radar",
+      "uv-spectrograph",
+      "spectrometer-ir",
+      "dust-analyzer",
+      "camera-highres"
+    ],
+    "orbitIds": ["mars-low"],
+    "minScience": 160,
+    "level": 3
+  }
 ]
