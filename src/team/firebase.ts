@@ -1,4 +1,3 @@
-// Owner: C. Firebase client initialization. Safe fallback if env vars missing.
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app'
 import { getDatabase, type Database } from 'firebase/database'
 
@@ -11,12 +10,17 @@ const firebaseConfig = {
 
 let app: FirebaseApp | null = null
 let db: Database | null = null
+let firebaseAvailable = false
 
-if (firebaseConfig.apiKey && firebaseConfig.projectId) {
-  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-  if (firebaseConfig.databaseURL) {
+try {
+  if (firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.databaseURL) {
+    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
     db = getDatabase(app)
+    firebaseAvailable = true
   }
+} catch {
+  // Graceful degradation when network/credentials are invalid
+  firebaseAvailable = false
 }
 
-export { app, db }
+export { app, db, firebaseAvailable }
