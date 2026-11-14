@@ -1,0 +1,4 @@
+[
+  { "id": "lro", "name": "Lunar Reconnaissance Orbiter (LRO)", "summary": "NASA robotic mission orbiting the Moon mapping surface features and potential resources.", "link": "https://www.nasa.gov/mission_pages/LRO/main/index.html" },
+  { "id": "maven", "name": "MAVEN Mars Orbiter", "summary": "Explores Mars upper atmosphere and ionosphere, interactions with the sun and solar wind.", "link": "https://www.nasa.gov/mission_pages/maven/main/index.html" }
+]

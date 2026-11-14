@@ -1,0 +1,4 @@
+[
+  { "id": "camera-highres", "name": "High-Resolution Optical Imager", "mass": 45, "power": 60, "cost": 30, "dataPerDay": 500, "scienceValue": 80, "source": "placeholder" },
+  { "id": "spectrometer-ir", "name": "Infrared Spectrometer", "mass": 25, "power": 40, "cost": 20, "dataPerDay": 250, "scienceValue": 65, "source": "placeholder" }
+]

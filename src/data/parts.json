@@ -1,0 +1,4 @@
+[
+  { "id": "solar-panel-std", "name": "Standard Solar Array", "kind": "power", "mass": 50, "power": 300, "cost": 15, "downlinkPerDay": 0, "source": "placeholder" },
+  { "id": "antenna-hga", "name": "High Gain Parabolic Dish", "kind": "antenna", "mass": 35, "power": 50, "cost": 12, "downlinkPerDay": 1000, "source": "placeholder" }
+]

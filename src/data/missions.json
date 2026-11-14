@@ -1,0 +1,4 @@
+[
+  { "id": "moon-orbiter", "name": "Moon orbiter", "goal": "Map lunar polar water ice deposits", "budget": 250, "lifetimeMonths": 24, "orbitIds": ["leo", "gto"], "minScience": 120, "level": 1 },
+  { "id": "mars-orbiter", "name": "Mars orbiter", "goal": "Study atmospheric methane cycles and climate", "budget": 450, "lifetimeMonths": 36, "orbitIds": ["gto"], "minScience": 150, "level": 2 }
+]

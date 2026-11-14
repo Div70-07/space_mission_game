@@ -1,0 +1,4 @@
+[
+  { "id": "leo", "name": "Low Earth Orbit (LEO)", "altitudeKm": 400, "info": "Low altitude, rapid ground passes, moderate radiation." },
+  { "id": "gto", "name": "Geostationary Transfer Orbit (GTO)", "altitudeKm": 35786, "info": "Elliptical transfer orbit requiring onboard apogee burn." }
+]

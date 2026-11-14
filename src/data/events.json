@@ -1,0 +1,4 @@
+[
+  { "id": "solar-flare", "name": "Solar Flare Event", "description": "High energy proton flux impacts spacecraft electronics.", "probability": 0.15, "impact": "Temporary telemetry degradation" },
+  { "id": "micrometeoroid", "name": "Micrometeoroid Strike", "description": "Small debris impact on outer thermal blanket.", "probability": 0.08, "impact": "Minor thermal efficiency loss" }
+]

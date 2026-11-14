@@ -1,0 +1,4 @@
+[
+  { "id": "falcon-9", "name": "Falcon 9 Block 5", "cost": 67, "payloadByOrbit": { "leo": 22800, "gto": 8300, "tli": 4020 }, "source": "placeholder" },
+  { "id": "electron", "name": "Electron Launcher", "cost": 7.5, "payloadByOrbit": { "leo": 300, "sso": 200 }, "source": "placeholder" }
+]
