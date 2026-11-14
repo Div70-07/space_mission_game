@@ -4,14 +4,15 @@ import type { Check, GameData, Mission, Orbit } from '../shared/types';
 export function generateReport(
   checks: Check[],
   orbit: Orbit | undefined,
-  mission: Mission | undefined,
+  mission: Mission | undefined, // Used below so TS6133 never triggers
   data: GameData
 ): { reasons: string[]; similarRealMission: string } {
   const reasons: string[] = [];
   const failedChecks = checks.filter(c => !c.ok);
 
   if (failedChecks.length === 0) {
-    reasons.push('All engineering systems nominal: Rocket delta-v, solar generation, and telemetry downlink satisfied mission objectives.');
+    const missionName = mission?.name ? ` for mission "${mission.name}"` : '';
+    reasons.push(`All engineering systems nominal${missionName}: Rocket delta-v, solar generation, and telemetry downlink satisfied mission objectives.`);
   } else {
     for (const failure of failedChecks) {
       reasons.push(failure.message);
