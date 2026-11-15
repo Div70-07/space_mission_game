@@ -6,8 +6,10 @@ import { useDesignStore } from '@/shared/designStore'
 import { gameData } from '@/data'
 import { computeTotals, checkDesign } from '@/engine'
 import { MissionScene } from '@/scene'
-import { ROLES, RESOURCE_UNITS } from '@/shared/constants'
+import { RESOURCE_UNITS } from '@/shared/constants'
+import { useTeamStore } from '@/team'
 import { resolveDestination } from './MissionExecution'
+import { getRequiredRoles, areRolesApproved } from './approval'
 
 export function Report() {
   const navigate = useNavigate()
@@ -21,6 +23,14 @@ export function Report() {
   } | null
 
   const simResult = navState?.simResult ?? null
+
+  // Team store: mode and players registry for dynamic approval validation
+  const teamMode = useTeamStore((s) => s.mode)
+  const players = useTeamStore((s) => s.players)
+
+  const requiredRoles = useMemo(() => {
+    return getRequiredRoles(teamMode, players)
+  }, [teamMode, players])
 
   // Find active mission, orbit, and rocket specifications
   const currentMission = useMemo(() => {
@@ -89,8 +99,8 @@ export function Report() {
     // 8. All launch-blocking engine checks pass
     const allChecksPass = checks.every((c) => c.ok)
 
-    // 9. All four distinct roles are present in design.approvedBy
-    const allRolesApproved = ROLES.every((role) => design.approvedBy.includes(role))
+    // 9. All required roles for active session have approved
+    const allRolesApproved = areRolesApproved(requiredRoles, design.approvedBy)
 
     return (
       hasMission &&
@@ -103,7 +113,7 @@ export function Report() {
       allChecksPass &&
       allRolesApproved
     )
-  }, [currentMission, design.orbitId, design.rocketId, design.approvedBy, rocketPayloadCapacity, totals.mass, totals.cost, checks])
+  }, [currentMission, design.orbitId, design.rocketId, design.approvedBy, rocketPayloadCapacity, totals.mass, totals.cost, checks, requiredRoles])
 
   // Match real mission reference if supplied by engine
   const matchedRealMission = useMemo<RealMission | undefined>(() => {

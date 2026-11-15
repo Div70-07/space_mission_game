@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { gameData } from '@/data'
 import { computeTotals, checkDesign, runMission } from '@/engine'
 import { useDesignStore, emptyDesign } from '@/shared/designStore'
+import { getRequiredRoles, areRolesApproved } from '@/screens'
 import type { Role } from '@/shared/types'
 
 describe('Data Validation Tests', () => {
@@ -266,5 +267,102 @@ describe('Part B Budget Compliance & Single Rocket Cost Accounting', () => {
       const overChecks = checkDesign(overBudgetDesign, gameData)
       expect(overChecks.find((c) => c.id === 'budget')?.ok).toBe(false)
     }
+  })
+})
+
+describe('Dynamic Multiplayer Approval Integration (FIND-C1)', () => {
+  it('1. Solo mode requires all four roles', () => {
+    const roles = getRequiredRoles('solo', {})
+    expect(roles).toEqual(['planner', 'engineer', 'science', 'comms'])
+    expect(areRolesApproved(roles, ['planner', 'engineer', 'science', 'comms'])).toBe(true)
+    expect(areRolesApproved(roles, ['planner', 'engineer', 'science'])).toBe(false)
+  })
+
+  it('2. Two-player crew requires approval from both active roles', () => {
+    const players = {
+      p1: { role: 'engineer' as const },
+      p2: { role: 'science' as const },
+    }
+    const roles = getRequiredRoles('online', players)
+    expect(roles).toEqual(['engineer', 'science'])
+    expect(areRolesApproved(roles, ['engineer', 'science'])).toBe(true)
+  })
+
+  it('3. Three-player crew requires approval from all three active roles', () => {
+    const players = {
+      p1: { role: 'planner' as const },
+      p2: { role: 'engineer' as const },
+      p3: { role: 'comms' as const },
+    }
+    const roles = getRequiredRoles('online', players)
+    expect(roles).toEqual(['planner', 'engineer', 'comms'])
+    expect(areRolesApproved(roles, ['planner', 'engineer', 'comms'])).toBe(true)
+  })
+
+  it('4. Four-player crew requires all four roles', () => {
+    const players = {
+      p1: { role: 'planner' as const },
+      p2: { role: 'engineer' as const },
+      p3: { role: 'science' as const },
+      p4: { role: 'comms' as const },
+    }
+    const roles = getRequiredRoles('online', players)
+    expect(roles).toEqual(['planner', 'engineer', 'science', 'comms'])
+    expect(areRolesApproved(roles, ['planner', 'engineer', 'science', 'comms'])).toBe(true)
+  })
+
+  it('5. Missing approval from one active role blocks launch', () => {
+    const players = {
+      p1: { role: 'engineer' as const },
+      p2: { role: 'science' as const },
+    }
+    const roles = getRequiredRoles('online', players)
+    expect(areRolesApproved(roles, ['engineer'])).toBe(false)
+    expect(areRolesApproved(roles, ['science'])).toBe(false)
+    expect(areRolesApproved(roles, [])).toBe(false)
+  })
+
+  it('6. Approval from an inactive role cannot substitute for a missing active role', () => {
+    const players = {
+      p1: { role: 'engineer' as const },
+      p2: { role: 'science' as const },
+    }
+    const roles = getRequiredRoles('online', players)
+    // planner is inactive (not claimed by any player)
+    expect(areRolesApproved(roles, ['engineer', 'planner'])).toBe(false)
+    // comms is inactive
+    expect(areRolesApproved(roles, ['science', 'comms'])).toBe(false)
+  })
+
+  it('7. Changing the design resets approvals and blocks launch until the required approvals are renewed', () => {
+    const store = useDesignStore.getState()
+    store.reset()
+
+    // 2-player crew setup
+    const players = {
+      p1: { role: 'engineer' as const },
+      p2: { role: 'science' as const },
+    }
+    const roles = getRequiredRoles('online', players)
+
+    // Approvals recorded
+    store.approve('engineer')
+    store.approve('science')
+    expect(areRolesApproved(roles, useDesignStore.getState().design.approvedBy)).toBe(true)
+
+    // Modifying design (e.g. changing fuelKg or mounting an instrument) triggers resetApprovals
+    store.patchDesign({ fuelKg: 150 })
+    store.resetApprovals()
+
+    // Launch must be blocked after reset
+    expect(useDesignStore.getState().design.approvedBy).toEqual([])
+    expect(areRolesApproved(roles, useDesignStore.getState().design.approvedBy)).toBe(false)
+
+    // Renewing required approvals re-enables launch
+    store.approve('engineer')
+    store.approve('science')
+    expect(areRolesApproved(roles, useDesignStore.getState().design.approvedBy)).toBe(true)
+
+    store.reset()
   })
 })

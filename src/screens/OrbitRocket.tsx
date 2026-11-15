@@ -2,11 +2,12 @@
 import { useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import type { Role, Orbit, Rocket } from '@/shared/types'
-import { ROLES, RESOURCE_UNITS } from '@/shared/constants'
+import { RESOURCE_UNITS } from '@/shared/constants'
 import { useDesignStore } from '@/shared/designStore'
 import { gameData } from '@/data'
 import { computeTotals, checkDesign, requiredDeltaV, availableDeltaV, runMission } from '@/engine'
 import { ApproveGate, canEdit, useTeamStore } from '@/team'
+import { getRequiredRoles, areRolesApproved } from './approval'
 import { ResourceBars } from './components/ResourceBars'
 import { Tooltip } from './components/Tooltip'
 import { resolveDestination } from './MissionExecution'
@@ -20,9 +21,10 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
   const navigate = useNavigate()
   const { design, patchDesign, resetApprovals } = useDesignStore()
 
-  // Team store: mode and actual claimed role (for multiplayer/local permissions)
+  // Team store: mode, actual claimed role, and players registry
   const teamMode = useTeamStore((s) => s.mode)
   const teamRole = useTeamStore((s) => s.myRole)
+  const players = useTeamStore((s) => s.players)
 
   // In team mode (online/local), use claimed role unless assignedRole is explicitly passed.
   // In solo mode, effectiveRole is undefined, which permits all edits.
@@ -126,10 +128,14 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
     return checks.every((c) => c.ok)
   }, [checks])
 
-  // Four-role approval validation
+  // Dynamic approval validation matching ApproveGate (supports solo and multiplayer crews)
+  const requiredRoles = useMemo(() => {
+    return getRequiredRoles(teamMode, players)
+  }, [teamMode, players])
+
   const allRolesApproved = useMemo(() => {
-    return ROLES.every((role) => design.approvedBy.includes(role))
-  }, [design.approvedBy])
+    return areRolesApproved(requiredRoles, design.approvedBy)
+  }, [requiredRoles, design.approvedBy])
 
   // Comprehensive launch authorization gate (FIX 1, FIX 2, FIX 3)
   const canApprove = Boolean(
@@ -630,7 +636,7 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
           <span className="text-xs font-mono text-slate-400">
             {canProceedToReport
               ? '✓ Flight Plan Authorized'
-              : `Awaiting Sign-offs (${design.approvedBy.length}/4 Approved)`}
+              : `Awaiting Sign-offs (${design.approvedBy.filter((r) => requiredRoles.includes(r)).length}/${requiredRoles.length} Approved)`}
           </span>
 
           <button
