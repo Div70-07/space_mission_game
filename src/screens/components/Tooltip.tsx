@@ -66,7 +66,7 @@ export function Tooltip({
   return (
     <span
       ref={containerRef}
-      className={`relative inline-flex items-center group/tooltip ${className}`}
+      className={`relative inline-flex items-center group/tooltip focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--deepsky-blue-primary)] rounded ${className}`}
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
       onFocus={() => setIsVisible(true)}
@@ -83,16 +83,16 @@ export function Tooltip({
         <span
           id={tooltipId}
           role="tooltip"
-          className={`absolute ${positionClasses} z-50 w-64 max-w-xs p-2.5 rounded-md text-xs leading-relaxed font-normal
-            bg-slate-950/95 text-slate-200 border border-teal-500/40 shadow-lg shadow-teal-950/50 backdrop-blur-md
+          className={`absolute ${positionClasses} z-50 w-64 max-w-[calc(100vw-2rem)] p-3 rounded-lg text-xs leading-relaxed font-normal
+            bg-[var(--deepsky-space-900)] text-slate-200 border border-[var(--deepsky-border-medium)] shadow-2xl backdrop-blur-md
             pointer-events-none transition-all duration-150 animate-in fade-in zoom-in-95`}
         >
           {termKey && (
-            <span className="block font-mono text-[10px] uppercase tracking-wider text-teal-400 font-semibold mb-1 pb-1 border-b border-teal-900/60">
+            <span className="block font-mono text-[10px] uppercase tracking-wider text-[var(--deepsky-blue-primary)] font-bold mb-1.5 pb-1 border-b border-[var(--deepsky-border-subtle)]">
               SYS-DEF // {termKey}
             </span>
           )}
-          <span className="block text-slate-300 font-sans text-[11px]">
+          <span className="block text-slate-300 font-sans text-xs leading-normal">
             {resolvedContent}
           </span>
         </span>

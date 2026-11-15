@@ -1,0 +1,329 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <!-- Deep Space Sky Gradient -->
+    <radialGradient id="deepSpaceGlow" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#09142b"/>
+      <stop offset="50%" stop-color="#050a17"/>
+      <stop offset="100%" stop-color="#020409"/>
+    </radialGradient>
+
+    <!-- Cosmic Nebula Gradient -->
+    <radialGradient id="nebulaCyan" cx="25%" cy="30%" r="45%">
+      <stop offset="0%" stop-color="#0284c7" stop-opacity="0.35"/>
+      <stop offset="60%" stop-color="#0369a1" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#0369a1" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="nebulaOrange" cx="85%" cy="50%" r="40%">
+      <stop offset="0%" stop-color="#ea580c" stop-opacity="0.25"/>
+      <stop offset="70%" stop-color="#f97316" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Earth Atmosphere & Body Gradients -->
+    <radialGradient id="earthAtmosphereGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="75%" stop-color="#0284c7" stop-opacity="0"/>
+      <stop offset="90%" stop-color="#38bdf8" stop-opacity="0.5"/>
+      <stop offset="97%" stop-color="#7dd3fc" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#bae6fd" stop-opacity="1"/>
+    </radialGradient>
+    <radialGradient id="earthSurfaceOcean" cx="38%" cy="34%" r="65%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="35%" stop-color="#0369a1"/>
+      <stop offset="70%" stop-color="#075985"/>
+      <stop offset="90%" stop-color="#0c4a6e"/>
+      <stop offset="100%" stop-color="#031a2c"/>
+    </radialGradient>
+    <radialGradient id="earthTerminator" cx="30%" cy="26%" r="72%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.12"/>
+      <stop offset="40%" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="75%" stop-color="#000000" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.95"/>
+    </radialGradient>
+    <clipPath id="earthGlobeClip">
+      <circle cx="280" cy="220" r="160"/>
+    </clipPath>
+
+    <!-- Launchpad Fire & Lighting Gradients -->
+    <linearGradient id="rocketPlume" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="20%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#f97316"/>
+      <stop offset="80%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#7c2d12" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="floodlightGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fed7aa" stop-opacity="0.8"/>
+      <stop offset="40%" stop-color="#fb923c" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#ea580c" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Glass & Interior Lighting Gradients -->
+    <linearGradient id="windowStrutGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0b1324"/>
+      <stop offset="30%" stop-color="#1e293b"/>
+      <stop offset="70%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#060913"/>
+    </linearGradient>
+    <linearGradient id="glassReflection" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.08"/>
+      <stop offset="45%" stop-color="#38bdf8" stop-opacity="0.02"/>
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- HUD & Visor Glow Filter -->
+    <filter id="cyanGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- 1. DEEP SPACE BACKDROP & NEBULA -->
+  <rect width="1200" height="600" fill="url(#deepSpaceGlow)"/>
+  <rect width="1200" height="600" fill="url(#nebulaCyan)"/>
+  <rect width="1200" height="600" fill="url(#nebulaOrange)"/>
+
+  <!-- Starfield Canvas -->
+  <g fill="#ffffff">
+    <circle cx="65" cy="80" r="1.3" opacity="0.85"/>
+    <circle cx="140" cy="45" r="0.9" opacity="0.6"/>
+    <circle cx="210" cy="110" r="1.4" opacity="0.9"/>
+    <circle cx="320" cy="50" r="0.8" opacity="0.5"/>
+    <circle cx="480" cy="35" r="1.2" opacity="0.8"/>
+    <circle cx="560" cy="85" r="0.7" opacity="0.5"/>
+    <circle cx="680" cy="40" r="1.5" opacity="0.95"/>
+    <circle cx="740" cy="95" r="0.8" opacity="0.6"/>
+    <circle cx="820" cy="60" r="1.1" opacity="0.75"/>
+    <circle cx="910" cy="30" r="1.3" opacity="0.85"/>
+    <circle cx="1020" cy="75" r="0.8" opacity="0.6"/>
+    <circle cx="1130" cy="45" r="1.4" opacity="0.9"/>
+    <circle cx="1160" cy="120" r="0.9" opacity="0.65"/>
+    <circle cx="70" cy="240" r="0.7" opacity="0.5"/>
+    <circle cx="490" cy="170" r="1.0" opacity="0.7"/>
+    <circle cx="620" cy="190" r="0.8" opacity="0.55"/>
+    <circle cx="770" cy="180" r="1.2" opacity="0.8"/>
+    <circle cx="1060" cy="190" r="1.0" opacity="0.7"/>
+  </g>
+
+  <!-- 2. PANORAMIC EARTH VIEW (Center-Left Observation Vista) -->
+  <g transform="translate(10, 0)">
+    <!-- Atmosphere Rim Glow -->
+    <circle cx="280" cy="220" r="168" fill="url(#earthAtmosphereGlow)"/>
+
+    <!-- Earth Globe -->
+    <g clipPath="url(#earthGlobeClip)">
+      <circle cx="280" cy="220" r="160" fill="url(#earthSurfaceOcean)"/>
+
+      <!-- Continents (Detailed Vector Landmasses) -->
+      <!-- Eurasia / Africa -->
+      <path d="M 210 110 Q 255 95 300 110 Q 340 130 330 170 Q 290 195 260 180 Q 220 185 200 150 Z" fill="#15803d" opacity="0.9"/>
+      <path d="M 250 120 Q 285 105 315 120 Q 305 160 270 170 Z" fill="#a16207" opacity="0.8"/>
+      <!-- Americas / Atlantic Basin -->
+      <path d="M 180 180 Q 220 170 240 200 Q 230 250 200 270 Q 170 260 165 220 Z" fill="#166534" opacity="0.85"/>
+      <path d="M 270 220 Q 320 205 340 240 Q 325 300 290 320 Q 260 310 255 270 Z" fill="#15803d" opacity="0.9"/>
+      <path d="M 290 240 Q 325 230 330 270 Q 300 290 280 270 Z" fill="#854d0e" opacity="0.75"/>
+
+      <!-- North Polar Ice Cap -->
+      <path d="M 220 70 Q 280 58 340 70 Q 310 88 280 84 Q 250 88 220 70 Z" fill="#f8fafc" opacity="0.95"/>
+
+      <!-- Swirling Atmospheric Cloud Bands -->
+      <path d="M 150 160 Q 210 135 280 150 Q 360 165 420 150 Q 370 165 285 162 Q 200 150 150 160 Z" fill="#ffffff" opacity="0.5"/>
+      <path d="M 180 230 Q 250 210 320 235 Q 390 250 375 260 Q 310 245 240 235 Q 200 240 180 230 Z" fill="#ffffff" opacity="0.45"/>
+      <path d="M 310 140 Q 340 130 355 150 Q 350 170 330 165 Z" fill="#ffffff" opacity="0.6"/>
+
+      <!-- Day/Night Terminator Spherical Shadow -->
+      <circle cx="280" cy="220" r="160" fill="url(#earthTerminator)"/>
+    </g>
+
+    <!-- Orbital Flight Path Arc Over Earth -->
+    <ellipse cx="280" cy="220" rx="225" ry="85" transform="rotate(-35 280 220)" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-dasharray="8 6" stroke-opacity="0.8" filter="url(#cyanGlow)"/>
+    <!-- Orbiting Satellite transponder -->
+    <circle cx="430" cy="135" r="4" fill="#22d3ee" filter="url(#cyanGlow)"/>
+    <circle cx="430" cy="135" r="9" fill="none" stroke="#22d3ee" stroke-width="1" stroke-opacity="0.6"/>
+  </g>
+
+  <!-- 3. ROCKET LAUNCHPAD COMPLEX (Right-Side Background Vista) -->
+  <g transform="translate(860, 220)">
+    <!-- Distant Horizon & Coastal Shoreline -->
+    <path d="M -150 200 Q 60 195 340 198 L 340 240 L -150 240 Z" fill="#090e1a"/>
+
+    <!-- Pad Deck Infrastructure -->
+    <rect x="20" y="160" width="160" height="25" fill="#1e293b" rx="2"/>
+
+    <!-- Pad Service Gantry Tower (SpaceX Starbase / NASA Pad 39B Style) -->
+    <line x1="45" y1="160" x2="45" y2="-40" stroke="#475569" stroke-width="4"/>
+    <line x1="75" y1="160" x2="75" y2="-40" stroke="#475569" stroke-width="4"/>
+    <line x1="45" y1="-40" x2="75" y2="-40" stroke="#475569" stroke-width="4"/>
+    <!-- Tower Truss Braces -->
+    <line x1="45" y1="160" x2="75" y2="130" stroke="#334155" stroke-width="2"/>
+    <line x1="75" y1="160" x2="45" y2="130" stroke="#334155" stroke-width="2"/>
+    <line x1="45" y1="130" x2="75" y2="90" stroke="#334155" stroke-width="2"/>
+    <line x1="75" y1="130" x2="45" y2="90" stroke="#334155" stroke-width="2"/>
+    <line x1="45" y1="90" x2="75" y2="50" stroke="#334155" stroke-width="2"/>
+    <line x1="75" y1="90" x2="45" y2="50" stroke="#334155" stroke-width="2"/>
+    <line x1="45" y1="50" x2="75" y2="10" stroke="#334155" stroke-width="2"/>
+    <line x1="75" y1="50" x2="45" y2="10" stroke="#334155" stroke-width="2"/>
+    <line x1="45" y1="10" x2="75" y2="-30" stroke="#334155" stroke-width="2"/>
+    <line x1="75" y1="10" x2="45" y2="-30" stroke="#334155" stroke-width="2"/>
+
+    <!-- Crew Access Arm / Gantry Swing Arm -->
+    <line x1="75" y1="0" x2="115" y2="5" stroke="#94a3b8" stroke-width="3"/>
+
+    <!-- Tower Floodlights (High Intensity Warm Glow) -->
+    <circle cx="45" cy="-35" r="4" fill="#fef08a"/>
+    <circle cx="45" cy="-35" r="30" fill="url(#floodlightGlow)"/>
+    <circle cx="75" cy="45" r="3" fill="#fef08a"/>
+    <circle cx="75" cy="45" r="25" fill="url(#floodlightGlow)"/>
+
+    <!-- Staged Rocket Stack (Saturn V / SLS Heavy Booster Form) -->
+    <g transform="translate(130, 0)">
+      <!-- Rocket Core Stage Body -->
+      <rect x="-14" y="-30" width="28" height="190" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="1"/>
+      <!-- Shadow on Hull -->
+      <rect x="0" y="-30" width="14" height="190" fill="#0f172a" opacity="0.2"/>
+      <!-- Interstage Separation Bands -->
+      <rect x="-14" y="30" width="28" height="6" fill="#0f172a"/>
+      <rect x="-14" y="110" width="28" height="6" fill="#0f172a"/>
+      <!-- NASA Worm / DeepSky Decal Stripe -->
+      <rect x="-4" y="50" width="8" height="30" fill="#ea580c"/>
+
+      <!-- Payload Fairing (Aerodynamic Nosecone) -->
+      <path d="M -14 -30 Q -14 -85 0 -105 Q 14 -85 14 -30 Z" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+      <rect x="0" y="-102" width="14" height="72" fill="#0f172a" opacity="0.15"/>
+
+      <!-- Solid Rocket Boosters (Strap-on Twins) -->
+      <rect x="-24" y="50" width="9" height="110" fill="#e2e8f0" stroke="#475569" stroke-width="1" rx="1"/>
+      <path d="M -24 50 Q -20 30 -15 50 Z" fill="#e2e8f0"/>
+      <rect x="15" y="50" width="9" height="110" fill="#cbd5e1" stroke="#475569" stroke-width="1" rx="1"/>
+      <path d="M 15 50 Q 20 30 24 50 Z" fill="#cbd5e1"/>
+
+      <!-- Engine Launch Ignition / Exhaust Plume Flare -->
+      <g transform="translate(0, 160)">
+        <polygon points="-16,0 0,75 16,0" fill="url(#rocketPlume)"/>
+        <polygon points="-8,0 0,45 8,0" fill="#ffffff" opacity="0.95"/>
+        <!-- Supersonic Shock Diamonds -->
+        <ellipse cx="0" cy="15" rx="3" ry="5" fill="#ffffff"/>
+        <ellipse cx="0" cy="30" rx="2" ry="4" fill="#ffffff"/>
+      </g>
+    </g>
+
+    <!-- Expanding Pad Steam / Exhaust Clouds -->
+    <ellipse cx="130" cy="175" rx="75" ry="30" fill="#fed7aa" opacity="0.35"/>
+    <ellipse cx="80" cy="180" rx="55" ry="25" fill="#f97316" opacity="0.25"/>
+    <ellipse cx="180" cy="180" rx="60" ry="28" fill="#ea580c" opacity="0.2"/>
+  </g>
+
+  <!-- 4. MISSION CONTROL OBSERVATION DOME ARCHITECTURE -->
+  <!-- Heavy Structural Window Mullions / Framing Beams -->
+  <g>
+    <!-- Top Slanted Bulkhead Header -->
+    <polygon points="0,0 1200,0 1200,45 800,55 400,55 0,45" fill="url(#windowStrutGrad)"/>
+    <line x1="0" y1="45" x2="1200" y2="45" stroke="#162238" stroke-width="2"/>
+    <line x1="0" y1="46" x2="1200" y2="46" stroke="#22d3ee" stroke-width="0.8" stroke-opacity="0.4"/>
+
+    <!-- Left Structural Pylon -->
+    <polygon points="0,0 45,0 80,600 0,600" fill="url(#windowStrutGrad)"/>
+    <line x1="45" y1="0" x2="80" y2="600" stroke="#162238" stroke-width="2"/>
+
+    <!-- Right Structural Pylon -->
+    <polygon points="1200,0 1155,0 1120,600 1200,600" fill="url(#windowStrutGrad)"/>
+    <line x1="1155" y1="0" x2="1120" y2="600" stroke="#162238" stroke-width="2"/>
+
+    <!-- Central Angular Window Divider Strut -->
+    <polygon points="560,0 580,0 600,600 580,600" fill="url(#windowStrutGrad)" opacity="0.9"/>
+    <line x1="560" y1="0" x2="580" y2="600" stroke="#22d3ee" stroke-width="0.8" stroke-opacity="0.3"/>
+    <line x1="580" y1="0" x2="600" y2="600" stroke="#0f172a" stroke-width="1.5"/>
+
+    <!-- Panoramic Glass Coating Diagonal Sheen -->
+    <polygon points="150,45 420,45 320,600 50,600" fill="url(#glassReflection)"/>
+    <polygon points="680,45 920,45 840,600 600,600" fill="url(#glassReflection)"/>
+  </g>
+
+  <!-- 5. MISSION CONTROL FOREGROUND WORKSTATIONS & CONSOLES -->
+  <g transform="translate(0, 480)">
+    <!-- Console Base Deck Platform -->
+    <polygon points="0,60 1200,60 1200,120 0,120" fill="#04070d"/>
+    <polygon points="0,40 1200,40 1200,60 0,60" fill="#090e1c"/>
+    <line x1="0" y1="40" x2="1200" y2="40" stroke="#162238" stroke-width="2"/>
+    <line x1="0" y1="41" x2="1200" y2="41" stroke="#22d3ee" stroke-width="1" stroke-opacity="0.6"/>
+
+    <!-- Flight Controller Consoles (Angled Displays) -->
+    <!-- Screen 1 (Far Left: Trajectory & Orbit Map) -->
+    <polygon points="110,35 240,30 250,55 105,58" fill="#060b18" stroke="#0e7490" stroke-width="1.2"/>
+    <line x1="125" y1="44" x2="225" y2="41" stroke="#22d3ee" stroke-width="1.2" stroke-opacity="0.8"/>
+    <circle cx="170" cy="43" r="3" fill="#22d3ee" filter="url(#cyanGlow)"/>
+
+    <!-- Screen 2 (Left Mid: Telemetry Readouts) -->
+    <polygon points="270,30 390,26 400,53 265,55" fill="#060b18" stroke="#0e7490" stroke-width="1.2"/>
+    <line x1="285" y1="38" x2="330" y2="37" stroke="#22d3ee" stroke-width="1"/>
+    <line x1="285" y1="43" x2="350" y2="41" stroke="#38bdf8" stroke-width="1"/>
+    <line x1="285" y1="48" x2="375" y2="46" stroke="#38bdf8" stroke-width="1"/>
+
+    <!-- Screen 3 (Right Mid: Booster Staging & Propulsion) -->
+    <polygon points="760,26 890,30 895,55 750,53" fill="#060b18" stroke="#c2410c" stroke-width="1.2"/>
+    <line x1="775" y1="36" x2="870" y2="39" stroke="#f97316" stroke-width="1.2" stroke-opacity="0.9"/>
+    <rect x="780" y="42" width="25" height="6" fill="#ea580c" opacity="0.8"/>
+    <rect x="815" y="42" width="30" height="6" fill="#f97316" opacity="0.8"/>
+
+    <!-- Screen 4 (Far Right: Flight Director Command Matrix) -->
+    <polygon points="920,30 1060,35 1065,58 915,55" fill="#060b18" stroke="#0e7490" stroke-width="1.2"/>
+    <line x1="935" y1="41" x2="1040" y2="44" stroke="#22d3ee" stroke-width="1.2" stroke-opacity="0.8"/>
+    <circle cx="980" cy="46" r="3" fill="#22d3ee"/>
+  </g>
+
+  <!-- 6. ASTRONAUT OBSERVER FIGURE (Center-Left Foreground) -->
+  <!-- Silhouette of Astronaut standing in Mission Control gazing out at Earth & Rocket -->
+  <g transform="translate(480, 240)">
+    <!-- Astronaut Cast Shadow onto Console Deck -->
+    <ellipse cx="15" cy="285" rx="55" ry="12" fill="#000000" opacity="0.75"/>
+
+    <!-- EMU Spacesuit Body Group -->
+    <g>
+      <!-- Life Support System Backpack (PLSS) -->
+      <rect x="-35" y="65" width="30" height="95" rx="6" fill="#0a0f1d" stroke="#1e293b" stroke-width="1.5"/>
+      <rect x="-30" y="75" width="8" height="20" fill="#334155" rx="2"/>
+      <circle cx="-15" cy="80" r="4" fill="#22d3ee" opacity="0.8"/>
+
+      <!-- Legs & Utility Heavy Magnetic Boots -->
+      <!-- Left Leg -->
+      <path d="M -12 175 L -18 245 L -26 280 L 2 280 L 4 245 L 2 175 Z" fill="#080d1a" stroke="#1e293b" stroke-width="1.2"/>
+      <!-- Right Leg (Slightly turned forward) -->
+      <path d="M 8 175 L 14 245 L 10 280 L 38 280 L 32 245 L 24 175 Z" fill="#0b1324" stroke="#334155" stroke-width="1.2"/>
+
+      <!-- Torso / Hard Upper Torso (HUT) -->
+      <path d="M -22 65 Q 5 58 32 65 L 28 180 Q 5 185 -18 180 Z" fill="#0c1427" stroke="#1e293b" stroke-width="1.5"/>
+      <!-- Chest Display Unit & Utility Rigging -->
+      <rect x="-8" y="85" width="26" height="32" rx="3" fill="#070c18" stroke="#334155" stroke-width="1"/>
+      <rect x="-4" y="90" width="18" height="10" fill="#040812" stroke="#22d3ee" stroke-width="0.8"/>
+      <!-- Chest Status Indicators -->
+      <circle cx="0" cy="108" r="2" fill="#22d3ee"/>
+      <circle cx="8" cy="108" r="2" fill="#38bdf8"/>
+
+      <!-- Left Arm & Glove (Resting naturally) -->
+      <path d="M -22 68 Q -38 110 -32 155 Q -30 185 -24 205 L -14 202 Q -22 180 -22 155 Q -28 115 -16 75 Z" fill="#080e1c" stroke="#1e293b" stroke-width="1"/>
+      <!-- Right Arm & Glove (Hand slightly raised / pointing toward viewport) -->
+      <path d="M 32 68 Q 48 105 52 145 Q 54 175 62 195 L 50 200 Q 42 175 40 145 Q 36 110 26 75 Z" fill="#0e172e" stroke="#334155" stroke-width="1"/>
+
+      <!-- Extravehicular Helmet & Visor Assembly -->
+      <ellipse cx="6" cy="38" rx="26" ry="28" fill="#0b1325" stroke="#334155" stroke-width="1.5"/>
+      <circle cx="6" cy="38" r="25" fill="#090f1f"/>
+
+      <!-- Gold / Cyan Reflective Helmet Visor -->
+      <path d="M -8 24 Q 10 16 28 24 Q 34 38 28 54 Q 10 60 -8 54 Q -14 40 -8 24 Z" fill="#040b17" stroke="#0284c7" stroke-width="1.2"/>
+      <!-- Earth & Rocket Reflection in Astronaut Visor -->
+      <ellipse cx="6" cy="38" rx="14" ry="16" fill="#0284c7" opacity="0.65" filter="url(#cyanGlow)"/>
+      <circle cx="2" cy="36" r="8" fill="#38bdf8" opacity="0.9"/>
+      <ellipse cx="12" cy="42" rx="3" ry="5" fill="#f97316" opacity="0.85"/>
+
+      <!-- High-Tech Cyan Edge Rim Lighting (Left Side, illuminated by Earth) -->
+      <path d="M -16 65 Q -25 120 -20 180" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" opacity="0.85" filter="url(#cyanGlow)"/>
+      <path d="M -22 28 Q -28 38 -20 50" fill="none" stroke="#38bdf8" stroke-width="1.5" opacity="0.9"/>
+
+      <!-- Warm Orange Edge Rim Lighting (Right Side, illuminated by Rocket Launchpad) -->
+      <path d="M 28 65 Q 40 120 32 180" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" opacity="0.85"/>
+      <path d="M 28 26 Q 35 38 30 52" fill="none" stroke="#fdba74" stroke-width="1.5" opacity="0.9"/>
+    </g>
+  </g>
+
+  <!-- 7. CINEMATIC AMBIENT VIGNETTE -->
+  <rect width="1200" height="600" fill="none" stroke="#000000" stroke-width="1" opacity="0.5"/>
+</svg>
