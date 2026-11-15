@@ -22,6 +22,29 @@ function isInstrument(item: Instrument | Part): item is Instrument {
   return 'scienceValue' in item
 }
 
+// Operational aerospace descriptions for each component
+const COMPONENT_DESCRIPTIONS: Record<string, string> = {
+  'camera-highres': 'High-resolution telescopic optical camera capturing fine-scale geomorphology and surface features.',
+  'spectrometer-ir': 'Hyperspectral infrared sensor mapping hydrated minerals, ice deposits, and surface composition.',
+  'radar-altimeter': 'Cloud-penetrating radar profiling planetary surface topography and roughness characteristics.',
+  'mag-plasma': 'Deployable boom measuring local planetary magnetic fields and ambient solar wind plasma interactions.',
+  'thermal-radiometer': 'Multispectral radiometer measuring surface brightness temperature, thermal inertia, and regolith properties.',
+  'neutron-spectrometer': 'Nuclear detector measuring epithermal neutrons to identify subsurface hydrogen and water ice.',
+  'atmospheric-lidar': 'Pulsed laser sounder measuring atmospheric aerosol density, cloud layers, and vertical profiles.',
+  'uv-spectrograph': 'Ultraviolet spectrometer analyzing atmospheric escape, auroral emissions, and gaseous species.',
+  'subsurface-radar': 'Long-wavelength sounding radar penetrating planetary crust to detect buried ice sheets and aquifers.',
+  'dust-analyzer': 'Impact ionization detector measuring cosmic and interplanetary dust grain mass and chemical makeup.',
+  'solar-panel-std': 'Deployable triple-junction photovoltaic panels providing steady power in inner solar system environments.',
+  'solar-panel-advanced': 'Accordion-deployed circular UltraFlex array offering high specific power and orbital resilience.',
+  'rtg-mmrtg': 'Plutonium-238 thermoelectric nuclear generator delivering continuous power independent of sunlight.',
+  'rtg-nextgen': 'High-yield radioisotope generator engineered for outer planet exploration and extreme environments.',
+  'antenna-omni': 'Low-gain quasi-omnidirectional antenna providing baseline telemetry and contingency ground uplink.',
+  'antenna-mga': 'Medium-gain steerable horn antenna offering balanced scientific downlink throughput.',
+  'antenna-hga': 'High-gain Cassegrain parabolic dish reflector maximizing deep-space data transmission to Earth.',
+  'antenna-ka': 'Deep-space optical laser terminal and Ka-band transceiver maximizing interplanetary science returns.',
+  'bus-structure-standard': 'High-strength aluminum-honeycomb core bus integrated directly into flight avionics baselines.',
+}
+
 export function PartCard({
   item,
   selected = false,
@@ -32,6 +55,7 @@ export function PartCard({
 }: PartCardProps) {
   const isInst = isInstrument(item)
   const categoryLabel = isInst ? 'Instrument' : item.kind.toUpperCase()
+  const description = COMPONENT_DESCRIPTIONS[item.id] || item.source
 
   const handleCardClick = () => {
     if (!disabled && onToggle) {
@@ -47,6 +71,36 @@ export function PartCard({
     }
   }
 
+  // Subsystem specific category styling
+  const isPower = !isInst && item.kind === 'power'
+  const isComms = !isInst && item.kind === 'antenna'
+
+  const categoryStyle = isInst
+    ? 'bg-purple-950/60 text-purple-300 border-purple-700/60'
+    : isPower
+      ? 'bg-amber-950/60 text-amber-300 border-amber-700/60'
+      : isComms
+        ? 'bg-cyan-950/60 text-cyan-300 border-cyan-700/60'
+        : 'bg-slate-900 text-slate-300 border-slate-700'
+
+  const selectedClass = selected
+    ? isInst
+      ? 'deepsky-card-selected-science'
+      : isPower
+        ? 'deepsky-card-selected-power'
+        : isComms
+          ? 'deepsky-card-selected-comms'
+          : 'deepsky-card-selected'
+    : 'deepsky-card'
+
+  const annunciatorStyle = isInst
+    ? 'bg-[#1E293B] text-purple-300 border border-purple-600/60 shadow-none'
+    : isPower
+      ? 'bg-[#1E293B] text-amber-300 border border-amber-600/60 shadow-none'
+      : isComms
+        ? 'bg-[#1E293B] text-blue-300 border border-blue-500/60 shadow-none'
+        : 'bg-[#1E293B] text-blue-300 border border-blue-500/60 shadow-none'
+
   return (
     <div
       role="button"
@@ -55,36 +109,22 @@ export function PartCard({
       aria-disabled={disabled}
       onClick={handleCardClick}
       onKeyDown={handleKeyDown}
-      className={`relative group rounded-lg p-4 transition-all duration-200 border flex flex-col justify-between cursor-pointer select-none
-        ${selected
-          ? 'bg-slate-900/90 border-teal-400 ring-1 ring-teal-400/50 shadow-md shadow-teal-950/60'
-          : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/40'
-        }
-        ${disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}
+      className={`relative group rounded-xl p-4 transition-all duration-150 border flex flex-col justify-between cursor-pointer select-none deepsky-focus-ring shadow-none
+        ${selectedClass}
+        ${disabled ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}
         ${className}
       `}
       title={disabled && disabledReason ? disabledReason : undefined}
     >
       <div>
-        {/* Header / Category & Selection Status */}
+        {/* Header: Subsystem Category & Selection Annunciator */}
         <div className="flex items-center justify-between gap-2 mb-2">
-          <span
-            className={`text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded border
-              ${isInst
-                ? 'bg-purple-950/60 text-purple-300 border-purple-800/50'
-                : item.kind === 'power'
-                  ? 'bg-amber-950/60 text-amber-300 border-amber-800/50'
-                  : item.kind === 'antenna'
-                    ? 'bg-sky-950/60 text-sky-300 border-sky-800/50'
-                    : 'bg-slate-800 text-slate-300 border-slate-700'
-              }
-            `}
-          >
+          <span className={`text-xs font-sans font-semibold px-2.5 py-0.5 rounded border ${categoryStyle}`}>
             {categoryLabel}
           </span>
 
           {selected && (
-            <span className="flex items-center gap-1 text-[11px] font-mono text-teal-300 font-semibold">
+            <span className={`deepsky-annunciator ${annunciatorStyle}`}>
               <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                 <path fillRule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" />
               </svg>
@@ -94,74 +134,95 @@ export function PartCard({
         </div>
 
         {/* Component Title */}
-        <h3 className="font-semibold text-sm text-slate-100 tracking-wide mb-3 leading-snug">
+        <h3 className="font-bold text-base text-slate-100 tracking-normal mb-1 leading-snug font-sans">
           {item.name}
         </h3>
 
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-2 gap-2 text-xs font-mono mb-3">
-          {/* Mass */}
-          <div className="bg-slate-900/80 px-2 py-1.5 rounded border border-slate-800/70 flex items-center justify-between">
-            <span className="text-slate-400">Mass:</span>
-            <span className="text-slate-200">{item.mass} {RESOURCE_UNITS.mass}</span>
+        {/* Operational Description */}
+        <p className="text-sm text-slate-400 font-sans mb-3 line-clamp-2 leading-relaxed">
+          {description}
+        </p>
+
+        {/* Technical Specifications Grid */}
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          {/* Mass Spec */}
+          <div className="bg-[var(--deepsky-space-900)] px-2.5 py-1.5 rounded-lg border border-[var(--deepsky-border-subtle)] flex items-center justify-between">
+            <span className="text-xs text-slate-400 font-sans">Mass:</span>
+            <span className="text-xs text-slate-200 font-mono deepsky-num font-semibold">{item.mass} {RESOURCE_UNITS.mass}</span>
           </div>
 
-          {/* Power */}
-          <div className="bg-slate-900/80 px-2 py-1.5 rounded border border-slate-800/70 flex items-center justify-between">
-            <span className="text-slate-400">Power:</span>
-            <span className={`font-semibold ${item.power > 0 && !isInst && item.kind === 'power' ? 'text-emerald-400' : 'text-slate-200'}`}>
+          {/* Power Spec */}
+          <div className="bg-[var(--deepsky-space-900)] px-2.5 py-1.5 rounded-lg border border-[var(--deepsky-border-subtle)] flex items-center justify-between">
+            <span className="text-xs text-slate-400 font-sans">Power:</span>
+            <span className={`text-xs font-mono font-semibold deepsky-num ${item.power > 0 && !isInst && item.kind === 'power' ? 'text-[var(--deepsky-telemetry-nominal)]' : 'text-slate-200'}`}>
               {item.power > 0 && !isInst && item.kind === 'power' ? `+${item.power}` : item.power} {RESOURCE_UNITS.power}
             </span>
           </div>
 
-          {/* Cost */}
-          <div className="bg-slate-900/80 px-2 py-1.5 rounded border border-slate-800/70 flex items-center justify-between">
-            <span className="text-slate-400">Cost:</span>
-            <span className="text-slate-200">${item.cost}M</span>
+          {/* Cost Spec */}
+          <div className="bg-[var(--deepsky-space-900)] px-2.5 py-1.5 rounded-lg border border-[var(--deepsky-border-subtle)] flex items-center justify-between">
+            <span className="text-xs text-slate-400 font-sans">Cost:</span>
+            <span className="text-xs text-slate-200 font-mono deepsky-num font-semibold">${item.cost}M</span>
           </div>
 
           {/* Science Value or Downlink Rate */}
           {isInst ? (
-            <div className="bg-purple-950/30 px-2 py-1.5 rounded border border-purple-900/50 flex items-center justify-between">
-              <span className="text-purple-300">Science:</span>
-              <span className="text-purple-200 font-bold">+{item.scienceValue}</span>
+            <div className="bg-purple-950/30 px-2.5 py-1.5 rounded-lg border border-purple-800/40 flex items-center justify-between">
+              <span className="text-xs text-purple-300 font-sans">Science:</span>
+              <span className="text-xs text-purple-200 font-mono font-bold deepsky-num">+{item.scienceValue} pts</span>
             </div>
           ) : (
-            <div className="bg-sky-950/30 px-2 py-1.5 rounded border border-sky-900/50 flex items-center justify-between">
-              <span className="text-sky-300">Downlink:</span>
-              <span className="text-sky-200 font-medium">
+            <div className="bg-[#1E293B] px-2.5 py-1.5 rounded-lg border border-blue-800/40 flex items-center justify-between">
+              <span className="text-xs text-blue-300 font-sans">Downlink:</span>
+              <span className="text-xs text-slate-200 font-mono font-semibold deepsky-num">
                 {item.downlinkPerDay} {RESOURCE_UNITS.downlinkPerDay}
               </span>
             </div>
           )}
 
-          {/* Instrument Data Rate */}
+          {/* Instrument Data Rate Output */}
           {isInst && (
-            <div className="col-span-2 bg-slate-900/80 px-2 py-1.5 rounded border border-slate-800/70 flex items-center justify-between">
-              <span className="text-slate-400">Data Output:</span>
-              <span className="text-slate-200">{item.dataPerDay} {RESOURCE_UNITS.dataPerDay}</span>
+            <div className="col-span-2 bg-[var(--deepsky-space-900)] px-2.5 py-1.5 rounded-lg border border-[var(--deepsky-border-subtle)] flex items-center justify-between">
+              <span className="text-xs text-slate-400 font-sans">Data Output:</span>
+              <span className="text-xs text-slate-200 font-mono deepsky-num font-semibold">{item.dataPerDay} {RESOURCE_UNITS.dataPerDay}</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Footer / Attribution & Action Indicator */}
-      <div className="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
-        <span className="text-[10px] text-slate-500 font-mono truncate max-w-[150px]" title={item.source}>
-          SRC: {item.source}
+      {/* Footer / Select or Remove Action Button */}
+      <div className="mt-1 pt-2.5 border-t border-[var(--deepsky-border-subtle)] flex items-center justify-between gap-2">
+        <span className="text-xs text-slate-500 font-sans truncate max-w-[130px]" title={item.source}>
+          {item.source.split('(')[0]}
         </span>
 
-        <span
-          className={`px-3 py-1 text-xs font-medium rounded transition-colors
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={(e) => {
+            e.stopPropagation()
+            if (!disabled && onToggle) onToggle()
+          }}
+          className={`px-3.5 py-1.5 rounded-lg text-sm font-sans font-semibold tracking-normal transition-colors flex items-center gap-1.5 cursor-pointer shadow-none
             ${selected
-              ? 'bg-teal-500/20 text-teal-300 border border-teal-500/50'
-              : 'bg-slate-800 text-slate-200 border border-slate-700 group-hover:bg-slate-700 group-hover:text-white'
+              ? 'bg-rose-950/80 hover:bg-rose-900 text-rose-200 border border-rose-800'
+              : 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-500'
             }
-            ${disabled ? 'opacity-40' : ''}
+            ${disabled ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}
           `}
         >
-          {selected ? 'Remove' : 'Select'}
-        </span>
+          {selected ? (
+            <>
+              <span>✕</span>
+              <span>Remove</span>
+            </>
+          ) : (
+            <>
+              <span>+</span>
+              <span>Select</span>
+            </>
+          )}
+        </button>
       </div>
     </div>
   )

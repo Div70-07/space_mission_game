@@ -1,4 +1,5 @@
 // Owner: B. Flight outcome, simulation playback, and debrief report workstation.
+// PROJECT DEEPSKY: Editorial Aerospace Mission Debrief & Performance Analytics
 import { useMemo } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 import type { SimResult, SimEvent, RealMission } from '@/shared/types'
@@ -66,40 +67,22 @@ export function Report() {
   }, [currentRocket, design.orbitId])
 
   const isFlightAuthorized = useMemo(() => {
-    // 1. Valid mission exists
     const hasMission = Boolean(currentMission)
-
-    // 2. An orbit is selected
     const hasOrbit = Boolean(design.orbitId)
-
-    // 3. A rocket is selected
     const hasRocket = Boolean(design.rocketId)
-
-    // 4. Orbit is compliant with mission trajectory
     const isOrbitCompatible = Boolean(
       currentMission && design.orbitId && currentMission.orbitIds.includes(design.orbitId)
     )
-
-    // 5. Rocket has positive payload capacity for that orbit
     const canRocketReachOrbit = Boolean(
       rocketPayloadCapacity !== undefined && rocketPayloadCapacity > 0
     )
-
-    // 6. Spacecraft mass does not exceed payload capacity
     const isPayloadWithinCapacity = Boolean(
       canRocketReachOrbit && totals.mass <= (rocketPayloadCapacity ?? 0)
     )
-
-    // 7. Mission budget is not exceeded (totals.cost already includes rocket vehicle cost)
     const isBudgetCompliant = Boolean(
-      currentMission &&
-      totals.cost <= currentMission.budget
+      currentMission && totals.cost <= currentMission.budget
     )
-
-    // 8. All launch-blocking engine checks pass
     const allChecksPass = checks.every((c) => c.ok)
-
-    // 9. All required roles for active session have approved
     const allRolesApproved = areRolesApproved(requiredRoles, design.approvedBy)
 
     return (
@@ -134,35 +117,35 @@ export function Report() {
     navigate('/')
   }
 
-  // FIX 2 Guard: Display polished empty state if flight authorization was not satisfied
+  // Display polished empty state if flight authorization was not satisfied
   if (!isFlightAuthorized || !simResult) {
     return (
-      <div className="max-w-3xl mx-auto py-16 text-center space-y-6">
+      <div className="max-w-3xl mx-auto py-16 text-center space-y-6 font-sans text-slate-100">
         <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-2xl font-mono">
           ⚠
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold font-mono text-slate-100">
+          <h2 className="text-2xl font-bold font-sans text-white">
             NO COMPLETED FLIGHT SIMULATION FOUND
           </h2>
-          <p className="text-sm text-slate-400 max-w-md mx-auto">
-            A mission configuration must complete launch authorization before debrief telemetry can be processed.
+          <p className="text-sm text-slate-400 max-w-md mx-auto font-sans leading-relaxed">
+            A mission configuration must complete launch authorization and execution staging before debrief telemetry can be processed.
           </p>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
           {currentMission ? (
             <Link
               to="/orbit-rocket"
-              className="inline-flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold px-6 py-2.5 rounded-lg shadow-lg font-mono text-sm transition-all cursor-pointer"
+              className="px-6 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold font-sans text-sm transition-colors border border-blue-500 cursor-pointer"
             >
-              ← Return to Launch Authorization
+              ← Return to Launch Staging (/orbit-rocket)
             </Link>
           ) : (
             <Link
               to="/"
-              className="inline-flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold px-6 py-2.5 rounded-lg shadow-lg font-mono text-sm transition-all cursor-pointer"
+              className="px-6 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold font-sans text-sm transition-colors border border-blue-500 cursor-pointer"
             >
-              ← Return to Mission Catalog
+              ← Return to Mission Catalog (/)
             </Link>
           )}
         </div>
@@ -173,47 +156,50 @@ export function Report() {
   const isSuccess = simResult.success
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-16">
-      {/* 1. TOP HEADER & OUTCOME BANNER */}
-      <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6 shadow-md">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
+    <div className="max-w-[1440px] mx-auto space-y-8 pb-20 font-sans text-slate-100">
+      {/* ========================================================================= */}
+      {/* 1. TOP HEADER & OUTCOME HERO BANNER                                       */}
+      {/* ========================================================================= */}
+      <div className="rounded-2xl p-6 sm:p-8 border border-[#334155] bg-[#1E293B] shadow-none flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative overflow-hidden">
+        <div className="space-y-2 z-10">
+          <div className="flex items-center gap-2 mb-1">
             <span
-              className={`text-[10px] font-mono uppercase tracking-widest px-2.5 py-0.5 rounded border font-semibold
+              className={`text-xs font-sans px-3 py-1 rounded-full border font-semibold flex items-center gap-1.5
                 ${isSuccess
-                  ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800/60'
-                  : 'bg-rose-950/60 text-rose-300 border-rose-800/60'
+                  ? 'bg-emerald-950/80 text-emerald-300 border-emerald-800/60'
+                  : 'bg-rose-950/80 text-rose-300 border-rose-800/60'
                 }
               `}
             >
-              {isSuccess ? 'FLIGHT OUTCOME // MISSION SUCCESS' : 'FLIGHT OUTCOME // ANOMALY DETECTED'}
+              <span className={`w-2 h-2 rounded-full ${isSuccess ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
+              {isSuccess ? 'Flight Outcome · Mission Success' : 'Flight Outcome · Mission Anomaly'}
             </span>
-            <span className="text-[10px] font-mono text-slate-400">
-              MISSION TARGET: {currentMission?.name}
+            <span className="text-xs font-sans px-2.5 py-0.5 rounded bg-[#273449] text-slate-300 border border-[#334155]">
+              Target: {currentMission?.name}
             </span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold font-mono text-slate-100 tracking-tight">
-            MISSION POST-FLIGHT DEBRIEF
+          <h1 className="text-2xl sm:text-3xl font-bold font-sans tracking-tight text-white">
+            Mission Post-Flight Debrief
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-3xl leading-relaxed">
+          <p className="text-sm text-slate-400 max-w-2xl font-sans leading-relaxed">
             {currentMission?.goal}
           </p>
         </div>
 
-        {/* Score Readout Display */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 min-w-[200px] flex items-center justify-between lg:flex-col lg:items-end gap-2 font-mono">
-          <span className="text-xs uppercase text-slate-400 tracking-wider">Flight Science Score</span>
-          <div className="flex items-baseline gap-1">
-            <span className={`text-3xl font-extrabold ${isSuccess ? 'text-teal-300' : 'text-rose-400'}`}>
+        {/* Score Readout Display Card */}
+        <div className="bg-[#273449] border border-[#334155] rounded-xl p-5 min-w-[240px] flex items-center justify-between lg:flex-col lg:items-end gap-2 font-sans shadow-none z-10 shrink-0">
+          <span className="text-xs text-slate-400 font-sans">Flight Science Score</span>
+          <div className="flex items-baseline gap-1.5">
+            <span className={`text-4xl font-black font-mono ${isSuccess ? 'text-blue-400' : 'text-rose-400'}`}>
               {simResult.score}
             </span>
-            <span className="text-xs text-slate-500">/ 100 PTS</span>
+            <span className="text-xs text-slate-400 font-sans font-medium">/ 100 pts</span>
           </div>
           <span
-            className={`text-[10px] px-2 py-0.5 rounded border font-semibold uppercase
+            className={`text-xs px-2.5 py-0.5 rounded border font-semibold
               ${isSuccess
-                ? 'bg-teal-950/60 text-teal-300 border-teal-800/50'
+                ? 'bg-blue-950/60 text-blue-300 border-blue-800/50'
                 : 'bg-rose-950/60 text-rose-300 border-rose-800/50'
               }
             `}
@@ -223,60 +209,67 @@ export function Report() {
         </div>
       </div>
 
-      {/* 2. VISUAL MISSION ANIMATION SCENE */}
-      <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 shadow-lg">
-        <div className="flex items-center justify-between mb-3 px-1 border-b border-slate-800/80 pb-2">
+      {/* ========================================================================= */}
+      {/* 2. VISUAL MISSION ANIMATION SCENE (Telemetry Playback)                     */}
+      {/* ========================================================================= */}
+      <div className="rounded-2xl border border-[#334155] bg-[#1E293B] p-4 sm:p-5 shadow-none space-y-3">
+        <div className="flex items-center justify-between px-1 border-b border-[#334155] pb-2">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
-            <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-teal-400">
-              Orbital Maneuver & Telemetry Playback
+            <span className="w-2 h-2 rounded-full bg-blue-400" />
+            <h2 className="text-sm font-bold font-sans uppercase tracking-normal text-slate-100">
+              Orbital Maneuver & Trajectory Playback
             </h2>
           </div>
-          <span className="text-[11px] font-mono text-slate-400">
-            CANVAS VISUALIZER ACTIVE
+          <span className="text-xs font-sans px-2.5 py-0.5 rounded bg-[#273449] text-slate-300 border border-[#334155]">
+            Simulation Telemetry
           </span>
         </div>
-        <MissionScene
-          result={simResult}
-          destination={destination}
-          orbitId={design.orbitId}
-          missionName={currentMission?.name}
-          autoPlay={false}
-        />
+
+        <div className="w-full rounded-xl overflow-hidden bg-black/90">
+          <MissionScene
+            result={simResult}
+            destination={destination}
+            orbitId={design.orbitId}
+            missionName={currentMission?.name}
+            autoPlay={false}
+          />
+        </div>
       </div>
 
-      {/* 3. SIMULATION LOG & DEBRIEF FINDINGS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Debrief Analysis & Reasons */}
-        <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-6 space-y-4 flex flex-col justify-between">
+      {/* ========================================================================= */}
+      {/* 3. SIMULATION LOG, FINDINGS & HISTORICAL BENCHMARK                         */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        {/* Left Column: Engineering Debrief & System Findings */}
+        <div className="p-6 rounded-2xl bg-[#1E293B] border border-[#334155] space-y-5 flex flex-col justify-between">
           <div>
-            <div className="border-b border-slate-800 pb-3 mb-4">
-              <h2 className="text-sm font-bold font-mono uppercase tracking-wider text-slate-200">
+            <div className="border-b border-[#334155] pb-3 mb-4">
+              <h2 className="text-base font-bold font-sans text-slate-100">
                 Engineering Debrief & System Findings
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Evaluation of operational anomalies, resource margins, and payload returns.
+              <p className="text-sm text-slate-400 mt-1 font-sans">
+                Evaluation of operational anomalies, resource margins, and payload telemetry returns.
               </p>
             </div>
 
             {simResult.reasons.length === 0 ? (
-              <div className="p-4 bg-slate-900/40 rounded-lg border border-slate-800 text-xs font-mono text-slate-400">
-                All subsystem telemetry within nominal thresholds throughout lifetime.
+              <div className="p-4 bg-[#273449] rounded-xl border border-[#334155] text-sm font-sans text-slate-300">
+                ✓ All subsystem telemetry remained within nominal parameters throughout the flight envelope.
               </div>
             ) : (
               <div className="space-y-2.5">
                 {simResult.reasons.map((reason, idx) => (
                   <div
                     key={idx}
-                    className={`p-3 rounded-lg border text-xs font-mono flex items-start gap-2.5
+                    className={`p-3.5 rounded-xl border text-sm font-sans flex items-start gap-2.5
                       ${isSuccess
-                        ? 'bg-slate-900/60 border-slate-800 text-slate-300'
+                        ? 'bg-[#273449] border-[#334155] text-slate-200'
                         : 'bg-rose-950/30 border-rose-900/50 text-rose-300'
                       }
                     `}
                   >
                     <span className="mt-0.5 font-bold">{isSuccess ? '✓' : '⚠'}</span>
-                    <span className="leading-relaxed">{reason}</span>
+                    <span className="leading-relaxed font-sans">{reason}</span>
                   </div>
                 ))}
               </div>
@@ -285,14 +278,14 @@ export function Report() {
 
           {/* Real NASA Mission Comparison */}
           {matchedRealMission ? (
-            <div className="mt-6 pt-4 border-t border-slate-800/80 bg-slate-900/40 p-4 rounded-lg border border-slate-800">
-              <span className="text-[10px] font-mono uppercase text-teal-400 tracking-wider block mb-1">
-                Historical Benchmark Comparison
+            <div className="pt-4 border-t border-[#334155] bg-[#273449] p-4 rounded-xl border border-[#334155] space-y-2">
+              <span className="text-xs font-sans uppercase text-blue-300 font-semibold block">
+                NASA HISTORICAL BENCHMARK COMPARISON
               </span>
-              <h3 className="text-sm font-bold font-mono text-slate-100 mb-1">
+              <h3 className="text-base font-bold font-sans text-white">
                 {matchedRealMission.name}
               </h3>
-              <p className="text-xs text-slate-300 leading-relaxed mb-3">
+              <p className="text-sm text-slate-300 leading-relaxed font-sans">
                 {matchedRealMission.summary}
               </p>
               {matchedRealMission.link && (
@@ -300,51 +293,56 @@ export function Report() {
                   href={matchedRealMission.link}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-xs font-mono text-teal-400 hover:text-teal-300 inline-flex items-center gap-1"
+                  className="text-sm font-sans text-blue-400 hover:text-blue-300 inline-flex items-center gap-1 font-semibold pt-1"
                 >
-                  <span>Explore Mission Archives</span>
+                  <span>Explore NASA Archives</span>
                   <span>↗</span>
                 </a>
               )}
             </div>
           ) : (
-            <div className="mt-6 pt-4 border-t border-slate-800/80 text-[11px] font-mono text-slate-500">
+            <div className="pt-4 border-t border-[#334155] text-xs font-sans text-slate-400">
               Reference benchmark comparison logged under flight classification level {currentMission?.level}.
             </div>
           )}
         </div>
 
-        {/* Flight Events Chronology Timeline */}
-        <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-6 space-y-4">
-          <div className="border-b border-slate-800 pb-3">
-            <h2 className="text-sm font-bold font-mono uppercase tracking-wider text-slate-200">
-              Mission Chronology & Flight Events Log
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Sequence of recorded milestones and environmental space weather events.
-            </p>
+        {/* Right Column: Chronological Flight Event Log */}
+        <div className="p-6 rounded-2xl bg-[#1E293B] border border-[#334155] space-y-4">
+          <div className="border-b border-[#334155] pb-3 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold font-sans text-slate-100">
+                Mission Chronology & Flight Events Log
+              </h2>
+              <p className="text-sm text-slate-400 mt-1 font-sans">
+                Chronological timeline of milestones and space weather anomalies.
+              </p>
+            </div>
+            <span className="text-xs font-sans text-blue-400 font-semibold">
+              {simResult.events.length} EVENTS
+            </span>
           </div>
 
           {simResult.events.length === 0 ? (
-            <div className="p-8 text-center bg-slate-900/30 rounded-lg border border-slate-800 text-slate-500 font-mono text-xs">
-              NO ANOMALOUS FLIGHT EVENTS ENCOUNTERED DURING MISSION PROFILE.
+            <div className="p-8 text-center bg-[#273449] rounded-xl border border-[#334155] text-slate-400 font-sans text-sm">
+              No anomalous flight events encountered during mission profile.
             </div>
           ) : (
             <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
               {simResult.events.map((evt: SimEvent, idx: number) => (
                 <div
                   key={idx}
-                  className="bg-slate-900/70 border border-slate-800 rounded-lg p-3 font-mono text-xs space-y-1"
+                  className="bg-[#273449] border border-[#334155] rounded-xl p-3.5 text-sm space-y-1.5"
                 >
                   <div className="flex items-center justify-between text-slate-400">
-                    <span className="text-[10px] uppercase text-teal-400 font-semibold">
+                    <span className="text-xs uppercase text-blue-300 font-sans font-semibold">
                       MISSION DAY {evt.day}
                     </span>
-                    <span className="text-[10px] text-slate-500">TEL-ID #{idx + 1}</span>
+                    <span className="text-xs text-slate-400 font-mono">TEL-ID #{idx + 1}</span>
                   </div>
-                  <p className="text-slate-200 leading-snug">{evt.text}</p>
-                  <div className="text-[11px] text-amber-300/90 pt-1 flex items-center gap-1">
-                    <span className="text-amber-400">Impact:</span>
+                  <p className="text-slate-200 leading-snug font-sans">{evt.text}</p>
+                  <div className="text-xs text-amber-300/90 pt-1 flex items-center gap-1 font-sans">
+                    <span className="text-amber-400 font-semibold">Impact:</span>
                     <span>{evt.impact}</span>
                   </div>
                 </div>
@@ -354,75 +352,79 @@ export function Report() {
         </div>
       </div>
 
-      {/* 4. FINAL HARDWARE CONFIGURATION MANIFEST */}
-      <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-6 space-y-4">
-        <div className="border-b border-slate-800 pb-3">
-          <h2 className="text-sm font-bold font-mono uppercase tracking-wider text-slate-200">
+      {/* ========================================================================= */}
+      {/* 4. FINAL HARDWARE CONFIGURATION MATRIX                                    */}
+      {/* ========================================================================= */}
+      <div className="p-6 rounded-2xl bg-[#1E293B] border border-[#334155] space-y-4">
+        <div className="border-b border-[#334155] pb-3">
+          <h2 className="text-sm font-bold font-sans uppercase tracking-normal text-slate-100">
             Final Spacecraft & Launch Vehicle Manifest
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Architecture parameters verified during flight qualification and orbital operations.
+          <p className="text-xs text-slate-400 mt-0.5 font-sans">
+            Verified flight telemetry and hardware configuration records.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 font-mono text-xs">
-          <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-            <span className="text-[10px] uppercase text-slate-400 block mb-1">Target Orbit</span>
-            <span className="font-bold text-slate-100 truncate block" title={currentOrbit?.name}>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 font-sans text-xs">
+          <div className="bg-[#273449] p-3.5 rounded-xl border border-[#334155]">
+            <span className="text-xs uppercase text-slate-400 block mb-1">Target Orbit</span>
+            <span className="font-bold text-slate-100 truncate block font-mono" title={currentOrbit?.name}>
               {currentOrbit?.name || 'Unassigned'}
             </span>
           </div>
 
-          <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-            <span className="text-[10px] uppercase text-slate-400 block mb-1">Launch Vehicle</span>
-            <span className="font-bold text-slate-100 truncate block" title={currentRocket?.name}>
+          <div className="bg-[#273449] p-3.5 rounded-xl border border-[#334155]">
+            <span className="text-xs uppercase text-slate-400 block mb-1">Launcher</span>
+            <span className="font-bold text-slate-100 truncate block font-mono" title={currentRocket?.name}>
               {currentRocket?.name || 'Unassigned'}
             </span>
           </div>
 
-          <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-            <span className="text-[10px] uppercase text-slate-400 block mb-1">Spacecraft Mass</span>
-            <span className="font-bold text-slate-100">
+          <div className="bg-[#273449] p-3.5 rounded-xl border border-[#334155]">
+            <span className="text-xs uppercase text-slate-400 block mb-1">Spacecraft Mass</span>
+            <span className="font-bold text-slate-100 font-mono">
               {totals.mass.toLocaleString()} {RESOURCE_UNITS.mass}
             </span>
           </div>
 
-          <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-            <span className="text-[10px] uppercase text-slate-400 block mb-1">Mission Cost</span>
-            <span className="font-bold text-slate-100">
-              ${totals.cost}M
+          <div className="bg-[#273449] p-3.5 rounded-xl border border-[#334155]">
+            <span className="text-xs uppercase text-slate-400 block mb-1">Mission Cost</span>
+            <span className="font-bold text-blue-400 font-mono">
+              ${totals.cost}M USD
             </span>
           </div>
 
-          <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-            <span className="text-[10px] uppercase text-slate-400 block mb-1">Power Load</span>
-            <span className="font-bold text-teal-300">
+          <div className="bg-[#273449] p-3.5 rounded-xl border border-[#334155]">
+            <span className="text-xs uppercase text-slate-400 block mb-1">Power Load</span>
+            <span className="font-bold text-slate-100 font-mono">
               {totals.power} {RESOURCE_UNITS.power}
             </span>
           </div>
 
-          <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-            <span className="text-[10px] uppercase text-slate-400 block mb-1">Lifetime</span>
-            <span className="font-bold text-slate-100">
-              {design.lifetimeMonths} mo
+          <div className="bg-[#273449] p-3.5 rounded-xl border border-[#334155]">
+            <span className="text-xs uppercase text-slate-400 block mb-1">Lifetime</span>
+            <span className="font-bold text-slate-100 font-mono">
+              {design.lifetimeMonths} Months
             </span>
           </div>
         </div>
       </div>
 
-      {/* 5. RETRY & NAVIGATION ACTIONS */}
-      <div className="bg-slate-950/90 border border-slate-800 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
-        <div className="flex flex-wrap items-center gap-2">
+      {/* ========================================================================= */}
+      {/* 5. RETRY & NAVIGATION ACTIONS                                             */}
+      {/* ========================================================================= */}
+      <div className="border-t border-[#334155] pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-3">
           <Link
             to="/orbit-rocket"
-            className="px-4 py-2 text-xs font-mono text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-sans font-medium text-slate-200 hover:text-white bg-[#273449] hover:bg-[#334155] border border-[#334155] rounded-lg transition-colors"
           >
             ← Review Orbit & Staging
           </Link>
           <Link
             to="/execution"
             state={{ simResult, destination }}
-            className="px-4 py-2 text-xs font-mono text-teal-400 hover:text-teal-300 bg-slate-900 border border-slate-800 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-sans font-medium text-blue-300 hover:text-white bg-[#273449] hover:bg-[#334155] border border-[#334155] rounded-lg transition-colors"
           >
             ⟲ Replay Trajectory Scene
           </Link>
@@ -432,7 +434,7 @@ export function Report() {
           <button
             type="button"
             onClick={handleRetryDesign}
-            className="px-5 py-2 text-xs font-mono font-semibold text-teal-300 bg-slate-900 border border-teal-500/40 hover:bg-slate-800 rounded-lg shadow-sm transition-all cursor-pointer"
+            className="px-5 py-2.5 text-sm font-sans font-semibold text-blue-300 bg-[#273449] hover:bg-[#334155] border border-[#334155] rounded-lg transition-colors cursor-pointer"
           >
             Re-engineer Spacecraft (/build)
           </button>
@@ -440,7 +442,7 @@ export function Report() {
           <button
             type="button"
             onClick={handleReturnToCatalog}
-            className="px-6 py-2 text-xs font-mono font-semibold text-slate-950 bg-teal-500 hover:bg-teal-400 rounded-lg shadow-md shadow-teal-950/50 transition-all cursor-pointer"
+            className="px-6 py-2.5 text-sm font-sans font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors border border-blue-500 cursor-pointer shadow-none"
           >
             Select New Mission (/)
           </button>

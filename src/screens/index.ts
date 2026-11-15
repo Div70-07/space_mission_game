@@ -1,4 +1,6 @@
 // Part B: Screens public door
+import './deepsky.css'
+
 export { MissionPicker } from './MissionPicker'
 export { Builder } from './Builder'
 export { OrbitRocket } from './OrbitRocket'
