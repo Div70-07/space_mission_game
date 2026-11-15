@@ -66,7 +66,9 @@ export function ResourceBars({
       current: totals?.power ?? 0,
       unit: RESOURCE_UNITS.power,
       limit: undefined, // Net power depends on generation vs active payload loads
-      limitLabel: (totals?.power ?? 0) >= 0 ? `Net positive (+${totals?.power ?? 0} W)` : `Deficit (${totals?.power ?? 0} W)`,
+      limitLabel: getCheck('power')
+        ? (getCheck('power')!.ok ? 'Generation Sufficient' : 'Deficit / Unbalanced')
+        : `Load: ${totals?.power ?? 0} W`,
       check: getCheck('power'),
     },
     {
@@ -149,8 +151,7 @@ export function ResourceBars({
           } else {
             // Unconstrained or pending external constraint
             if (res.id === 'power') {
-              // Net power deficit is critical even without an explicit upper cap
-              status = res.current < 0 ? 'critical' : 'normal'
+              status = res.check ? (res.check.ok ? 'normal' : 'critical') : 'normal'
             } else {
               status = 'unconstrained'
             }

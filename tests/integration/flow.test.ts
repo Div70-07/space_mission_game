@@ -214,3 +214,57 @@ describe('DesignStore Zustand Contract', () => {
     expect(useDesignStore.getState().design).toEqual(emptyDesign)
   })
 })
+
+describe('Part B Budget Compliance & Single Rocket Cost Accounting', () => {
+  it('charges rocket cost exactly once in totals.cost and does not double-count', () => {
+    const falcon = gameData.rockets.find((r) => r.id === 'falcon-9') || gameData.rockets[0]
+    const inst = gameData.instruments[0]
+    const power = gameData.parts.find((p) => p.kind === 'power')!
+    const antenna = gameData.parts.find((p) => p.kind === 'antenna')!
+
+    const design = {
+      ...emptyDesign,
+      missionId: gameData.missions[0].id,
+      instrumentIds: [inst.id],
+      powerSystemId: power.id,
+      antennaId: antenna.id,
+      rocketId: falcon.id,
+    }
+
+    const totals = computeTotals(design, gameData)
+    const expectedCost = inst.cost + power.cost + antenna.cost + falcon.cost
+    expect(totals.cost).toBe(Number(expectedCost.toFixed(2)))
+    // An expensive rocket must not be charged twice
+    expect(totals.cost).not.toBe(Number((expectedCost + falcon.cost).toFixed(2)))
+  })
+
+  it('correctly passes under-budget design and blocks genuinely over-budget design', () => {
+    const mission = gameData.missions[0]
+    const cheapRocket = gameData.rockets.find((r) => r.cost < mission.budget / 2) || gameData.rockets[0]
+    const expensiveRocket = gameData.rockets.find((r) => r.cost > mission.budget)
+
+    const underBudgetDesign = {
+      ...emptyDesign,
+      missionId: mission.id,
+      instrumentIds: [gameData.instruments[0].id],
+      powerSystemId: gameData.parts.find((p) => p.kind === 'power')!.id,
+      antennaId: gameData.parts.find((p) => p.kind === 'antenna')!.id,
+      rocketId: cheapRocket.id,
+    }
+    const underTotals = computeTotals(underBudgetDesign, gameData)
+    expect(underTotals.cost).toBeLessThanOrEqual(mission.budget)
+    const underChecks = checkDesign(underBudgetDesign, gameData)
+    expect(underChecks.find((c) => c.id === 'budget')?.ok).toBe(true)
+
+    if (expensiveRocket) {
+      const overBudgetDesign = {
+        ...underBudgetDesign,
+        rocketId: expensiveRocket.id,
+      }
+      const overTotals = computeTotals(overBudgetDesign, gameData)
+      expect(overTotals.cost).toBeGreaterThan(mission.budget)
+      const overChecks = checkDesign(overBudgetDesign, gameData)
+      expect(overChecks.find((c) => c.id === 'budget')?.ok).toBe(false)
+    }
+  })
+})

@@ -114,12 +114,12 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
     return rocketPayloadCapacity - totals.mass
   }, [rocketPayloadCapacity, totals.mass])
 
-  // Mission budget compliance (including rocket vehicle launch cost) (FIX 2)
+  // Mission budget compliance (totals.cost already includes rocket vehicle cost)
   const isBudgetExceeded = useMemo(() => {
     if (!currentMission) return false
-    const totalExpenditure = totals.cost + (currentRocket?.cost ?? 0)
+    const totalExpenditure = totals.cost
     return totalExpenditure > currentMission.budget
-  }, [totals.cost, currentRocket?.cost, currentMission])
+  }, [totals.cost, currentMission])
 
   // Engine validation checks (FIX 2)
   const allChecksPass = useMemo(() => {
@@ -233,23 +233,6 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
           >
             ← Back to Spacecraft Builder
           </Link>
-
-          <button
-            type="button"
-            disabled={!canProceedToReport}
-            onClick={() => navigate('/report')}
-            className={`inline-flex items-center gap-2 font-semibold px-5 py-2 rounded-lg font-mono text-xs transition-all
-              ${canProceedToReport
-                ? 'bg-teal-500 hover:bg-teal-400 text-slate-950 shadow-md shadow-teal-950/50 cursor-pointer'
-                : 'bg-slate-800 text-slate-500 border border-slate-700/60 cursor-not-allowed opacity-60'
-              }
-            `}
-          >
-            <span>Proceed to Mission Debrief</span>
-            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
-            </svg>
-          </button>
         </div>
       </div>
 

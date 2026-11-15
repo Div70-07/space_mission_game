@@ -80,10 +80,10 @@ export function Report() {
       canRocketReachOrbit && totals.mass <= (rocketPayloadCapacity ?? 0)
     )
 
-    // 7. Mission budget is not exceeded
+    // 7. Mission budget is not exceeded (totals.cost already includes rocket vehicle cost)
     const isBudgetCompliant = Boolean(
       currentMission &&
-      totals.cost + (currentRocket?.cost ?? 0) <= currentMission.budget
+      totals.cost <= currentMission.budget
     )
 
     // 8. All launch-blocking engine checks pass
@@ -103,7 +103,7 @@ export function Report() {
       allChecksPass &&
       allRolesApproved
     )
-  }, [currentMission, design.orbitId, design.rocketId, design.approvedBy, rocketPayloadCapacity, totals.mass, totals.cost, currentRocket?.cost, checks])
+  }, [currentMission, design.orbitId, design.rocketId, design.approvedBy, rocketPayloadCapacity, totals.mass, totals.cost, checks])
 
   // Match real mission reference if supplied by engine
   const matchedRealMission = useMemo<RealMission | undefined>(() => {
@@ -380,12 +380,12 @@ export function Report() {
           <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
             <span className="text-[10px] uppercase text-slate-400 block mb-1">Mission Cost</span>
             <span className="font-bold text-slate-100">
-              ${totals.cost + (currentRocket?.cost ?? 0)}M
+              ${totals.cost}M
             </span>
           </div>
 
           <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-            <span className="text-[10px] uppercase text-slate-400 block mb-1">Power Net</span>
+            <span className="text-[10px] uppercase text-slate-400 block mb-1">Power Load</span>
             <span className="font-bold text-teal-300">
               {totals.power} {RESOURCE_UNITS.power}
             </span>
