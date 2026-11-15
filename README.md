@@ -5,6 +5,7 @@
 CosmoCraft is an interactive, physics-grounded mission design and systems engineering simulator built for the **2026 NASA Space Apps Challenge** by team **Ad Astra Per Aspra**. Players step into the shoes of a NASA flight operations crew to configure, evaluate, and fly robotic planetary exploration missions to Earth orbit, the Moon, or Mars across six tightly coupled physical and fiscal constraints.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-cosmocraft.vercel.app-0284c7?style=flat&logo=vercel)](https://cosmocraft.vercel.app/)
+[![Walkthrough Video](https://img.shields.io/badge/Walkthrough%20Video-Google%20Drive-FF5722?style=flat&logo=googledrive)](https://drive.google.com/file/d/1ULgLBNMifcCI0wnd0-2TZ98NJ0DFlsXJ/view?usp=drivesdk)
 [![NASA Space Apps 2026](https://img.shields.io/badge/NASA%20Space%20Apps-2026-blue?style=flat)](https://www.spaceappschallenge.org/)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen?style=flat)](#getting-started)
 [![Tests Passing](https://img.shields.io/badge/tests-98%2F98%20passing-brightgreen?style=flat)](#getting-started)
@@ -16,6 +17,7 @@ CosmoCraft is an interactive, physics-grounded mission design and systems engine
 ### Key Navigation Links
 
 - **Live Web Application:** [https://cosmocraft.vercel.app/](https://cosmocraft.vercel.app/)
+- **Project Walkthrough Video:** [https://drive.google.com/file/d/1ULgLBNMifcCI0wnd0-2TZ98NJ0DFlsXJ/view?usp=drivesdk](https://drive.google.com/file/d/1ULgLBNMifcCI0wnd0-2TZ98NJ0DFlsXJ/view?usp=drivesdk)
 - **GitHub Repository:** [https://github.com/Div70-07/space_mission_game](https://github.com/Div70-07/space_mission_game)
 - **Challenge:** 2026 NASA Space Apps Challenge
 - **Team:** Ad Astra Per Aspra
