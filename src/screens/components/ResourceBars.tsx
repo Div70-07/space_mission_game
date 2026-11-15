@@ -1,6 +1,7 @@
 // Owner: B. Real-time mission resource telemetry and budget constraint monitors.
 import type { Totals, Check, Mission, Rocket, Orbit } from '@/shared/types'
 import { RESOURCE_UNITS } from '@/shared/constants'
+import { computeEffectiveDownlink, getAttenuationFactor } from '@/engine'
 
 export interface ResourceBarsProps {
   /** Real-time cumulative spacecraft totals computed by the physics engine */
@@ -50,6 +51,13 @@ export function ResourceBars({
       ? rocket.payloadByOrbit[orbit.id]
       : undefined
 
+  // Downlink telemetry calculations (shared physics with engine comms budget)
+  const rawDownlink = Math.max(0, totals?.downlinkPerDay ?? 0)
+  const attenuation = getAttenuationFactor(orbit, mission)
+  const effectiveDownlink = computeEffectiveDownlink(rawDownlink, orbit, mission)
+  const hasAttenuation = attenuation < 1.0 && rawDownlink > 0
+  const dataDemand = Math.max(0, totals?.dataPerDay ?? 0)
+
   // Find corresponding check result for each subsystem
   const getCheck = (id: Check['id']) => checks.find((c) => c.id === id)
 
@@ -91,24 +99,26 @@ export function ResourceBars({
       id: 'data',
       name: 'Data Gen',
       shortName: 'Data Gen',
-      current: totals?.dataPerDay ?? 0,
+      current: dataDemand,
       unit: RESOURCE_UNITS.dataPerDay,
-      limit: totals?.downlinkPerDay && totals.downlinkPerDay > 0 ? totals.downlinkPerDay : undefined,
-      limitLabel: totals?.downlinkPerDay && totals.downlinkPerDay > 0
-        ? `Cap: ${totals.downlinkPerDay} MB/d`
-        : 'Pending Comms',
+      limit: effectiveDownlink > 0 ? effectiveDownlink : undefined,
+      limitLabel: effectiveDownlink > 0
+        ? `Cap: ${effectiveDownlink.toLocaleString()} MB/d`
+        : (rawDownlink > 0 ? 'Cap: 0 MB/d' : 'Pending Comms'),
       check: getCheck('data'),
     },
     {
       id: 'comms',
-      name: 'Downlink',
+      name: hasAttenuation ? 'Downlink (Eff)' : 'Downlink',
       shortName: 'Downlink',
-      current: totals?.downlinkPerDay ?? 0,
+      current: effectiveDownlink,
       unit: RESOURCE_UNITS.downlinkPerDay,
-      limit: totals?.dataPerDay && totals.dataPerDay > 0 ? totals.dataPerDay : undefined,
-      limitLabel: totals?.dataPerDay && totals.dataPerDay > 0
-        ? `Demand: ${totals.dataPerDay} MB/d`
-        : 'No Payloads',
+      limit: dataDemand > 0 ? dataDemand : undefined,
+      limitLabel: hasAttenuation
+        ? (dataDemand > 0
+            ? `Req: ${dataDemand.toLocaleString()} · Raw: ${rawDownlink.toLocaleString()}`
+            : `Raw: ${rawDownlink.toLocaleString()} MB/d (-30%)`)
+        : (dataDemand > 0 ? `Demand: ${dataDemand.toLocaleString()} MB/d` : 'No Payloads'),
       check: getCheck('comms'),
     },
     {
@@ -128,28 +138,81 @@ export function ResourceBars({
     let status: ResourceStatus = 'normal'
     let percentage: number | null = null
 
-    if (res.limit !== undefined && res.limit > 0) {
-      percentage = Math.min(Math.round((res.current / res.limit) * 100), 200)
-      if (res.id === 'time') {
-        if (res.current < res.limit) {
+    if (res.id === 'mass') {
+      if (orbitPayloadLimit !== undefined && orbitPayloadLimit > 0) {
+        percentage = Math.min(Math.round((res.current / orbitPayloadLimit) * 100), 200)
+        if (res.current > orbitPayloadLimit) {
           status = 'critical'
+        } else if (res.current > orbitPayloadLimit * 0.85) {
+          status = 'warning'
+        } else {
+          status = 'normal'
         }
-      } else if (res.current > res.limit) {
-        status = 'critical'
-      } else if (res.current > res.limit * 0.85) {
-        status = 'warning'
-      }
-    } else {
-      if (res.id === 'power') {
-        status = res.check ? (res.check.ok ? 'normal' : 'critical') : 'normal'
       } else {
         status = 'unconstrained'
       }
-    }
-
-    if (res.id === 'comms' && totals && totals.dataPerDay > 0) {
-      if (totals.downlinkPerDay < totals.dataPerDay) {
+    } else if (res.id === 'budget') {
+      if (res.limit !== undefined && res.limit > 0) {
+        percentage = Math.min(Math.round((res.current / res.limit) * 100), 200)
+        if (res.current > res.limit) {
+          status = 'critical'
+        } else if (res.current > res.limit * 0.85) {
+          status = 'warning'
+        } else {
+          status = 'normal'
+        }
+      } else {
+        status = 'unconstrained'
+      }
+    } else if (res.id === 'power') {
+      status = res.check ? (res.check.ok ? 'normal' : 'critical') : 'normal'
+    } else if (res.id === 'time') {
+      if (res.limit !== undefined && res.limit > 0) {
+        percentage = Math.min(Math.round((res.current / res.limit) * 100), 100)
+        if (res.current < res.limit) {
+          status = 'critical'
+        } else {
+          status = 'normal'
+        }
+      } else {
+        status = 'normal'
+      }
+    } else if (res.id === 'data') {
+      if (res.current === 0) {
+        status = 'normal'
+        percentage = 0
+      } else if (rawDownlink === 0 || effectiveDownlink === 0) {
         status = 'critical'
+        percentage = 100
+      } else {
+        percentage = Math.min(Math.round((res.current / effectiveDownlink) * 100), 200)
+        if (res.current > effectiveDownlink) {
+          status = 'critical'
+        } else if (res.current > effectiveDownlink * 0.85) {
+          status = 'warning'
+        } else {
+          status = 'normal'
+        }
+      }
+    } else if (res.id === 'comms') {
+      if (rawDownlink === 0) {
+        status = 'critical'
+        percentage = 0
+      } else if (effectiveDownlink === 0) {
+        status = 'critical'
+        percentage = 0
+      } else if (dataDemand === 0) {
+        status = 'normal'
+        percentage = 0
+      } else {
+        percentage = Math.min(Math.round((dataDemand / effectiveDownlink) * 100), 100)
+        if (dataDemand > effectiveDownlink) {
+          status = 'critical'
+        } else if (dataDemand > effectiveDownlink * 0.85) {
+          status = 'warning'
+        } else {
+          status = 'normal'
+        }
       }
     }
 
@@ -232,20 +295,24 @@ export function ResourceBars({
     } else if (res.id === 'data') {
       if (res.current === 0) {
         message = 'No science instruments mounted.'
+      } else if (rawDownlink === 0) {
+        message = 'Pending communications antenna.'
       } else if (status === 'critical') {
-        message = 'Data generation exceeds capacity.'
+        message = `Data generation (${res.current} MB/d) exceeds downlink capacity (${effectiveDownlink} MB/d).`
       } else if (status === 'warning') {
         message = 'Data generation near bandwidth limit.'
-      } else if (!totals?.downlinkPerDay || totals.downlinkPerDay === 0) {
-        message = 'Pending communications antenna.'
       } else {
         message = 'Data generation within capacity.'
       }
     } else if (res.id === 'comms') {
-      if (!totals || totals.downlinkPerDay === 0) {
+      if (rawDownlink === 0) {
         message = 'No antenna installed.'
       } else if (status === 'critical') {
-        message = 'Downlink capacity insufficient.'
+        message = res.check?.message || `Downlink bottleneck: Instruments produce ${dataDemand} MB/day, exceeding antenna downlink (${effectiveDownlink} MB/day). Buffer will overflow.`
+      } else if (status === 'warning') {
+        message = `Downlink bandwidth near saturation (${dataDemand} / ${effectiveDownlink} MB/d).`
+      } else if (hasAttenuation) {
+        message = `Communications link nominal. Mars deep-space attenuation (x0.70): ${effectiveDownlink.toLocaleString()} MB/day effective.`
       } else {
         message = 'Communications link nominal.'
       }

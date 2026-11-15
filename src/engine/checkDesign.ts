@@ -17,7 +17,7 @@ export function checkDesign(design: Design, data: GameData): Check[] {
   const availDv = availableDeltaV(rocket, design.orbitId, totals.mass, design.fuelKg);
   const orbitRes = checkOrbit(orbit, availDv);
   const powerRes = checkPowerBudget(totals, orbit, powerSystem);
-  const commsRes = checkCommsBudget(totals, orbit);
+  const commsRes = checkCommsBudget(totals, orbit, mission);
 
   const budget = mission?.budget ?? 100;
   const budgetOk = totals.cost <= budget;
