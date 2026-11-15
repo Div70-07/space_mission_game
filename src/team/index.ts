@@ -1,5 +1,9 @@
-// Part C: Team mode public door
 export { Lobby } from './Lobby'
 export { ApproveGate } from './ApproveGate'
 export { LocalTeamMode } from './LocalTeamMode'
-export { canEdit } from './roles'
+export { canEdit, useCanEdit, ROLE_INFO } from './roles'
+export { useTeamStore } from './teamStore'
+export { useRoomSync } from './sync'
+export { createRoom, joinRoom, claimRole, releaseRole, leaveRoom } from './rooms'
+export type { RoleInfo } from './roles'
+export type { RoomBackend, RoomState, Player } from './types'

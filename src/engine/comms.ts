@@ -9,18 +9,26 @@ export interface CommsBudgetResult {
 
 export function checkCommsBudget(totals: Totals, orbit: Orbit | undefined): CommsBudgetResult {
   const isDeepSpace = orbit?.id.toLowerCase().includes('mars') || orbit?.altitudeKm! > 100000;
-  
-  // High latency and attenuation over deep-space link
+
+  // Deep-space link attenuation (game assumption): a simplified path-loss penalty of 0.70
+  // is applied for Mars or high-altitude orbits (>100 000 km) to represent the increased
+  // free-space path loss and DSN scheduling constraints. Real link budgets use the Friis
+  // transmission equation; this factor is a conservative game-design approximation.
   const attenuation = isDeepSpace ? 0.7 : 1.0;
-  const effectiveDownlink = Math.round(totals.downlinkPerDay * attenuation);
-  const marginMBPerDay = effectiveDownlink - totals.dataPerDay;
-  const ok = marginMBPerDay >= 0 && totals.downlinkPerDay > 0;
+
+  // Guard against negative totals (malformed data should not produce negative margins)
+  const safeDownlink = Math.max(0, totals.downlinkPerDay);
+  const safeData     = Math.max(0, totals.dataPerDay);
+
+  const effectiveDownlink = Math.round(safeDownlink * attenuation);
+  const marginMBPerDay = effectiveDownlink - safeData;
+  const ok = marginMBPerDay >= 0 && safeDownlink > 0;
 
   let message = 'Communications link nominal.';
-  if (totals.downlinkPerDay === 0) {
+  if (safeDownlink === 0) {
     message = 'Critical: No antenna installed. Science data cannot be returned.';
   } else if (!ok) {
-    message = `Downlink bottleneck: Instruments produce ${totals.dataPerDay} MB/day, exceeding antenna downlink (${effectiveDownlink} MB/day). Buffer will overflow.`;
+    message = `Downlink bottleneck: Instruments produce ${safeData} MB/day, exceeding antenna downlink (${effectiveDownlink} MB/day). Buffer will overflow.`;
   }
 
   return {

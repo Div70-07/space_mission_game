@@ -1,4 +1,72 @@
 [
-  { "id": "falcon-9", "name": "Falcon 9 Block 5", "cost": 67, "payloadByOrbit": { "leo": 22800, "gto": 8300, "tli": 4020 }, "source": "placeholder" },
-  { "id": "electron", "name": "Electron Launcher", "cost": 7.5, "payloadByOrbit": { "leo": 300, "sso": 200 }, "source": "placeholder" }
+  {
+    "id": "falcon-9",
+    "name": "Falcon 9 Block 5 (SpaceX)",
+    "cost": 67,
+    "payloadByOrbit": {
+      "leo": 22800,
+      "sso": 16000,
+      "gto": 8300,
+      "geo": 4000,
+      "moon-llo": 4020,
+      "mars-low": 3500
+    },
+    "source": "SpaceX Falcon 9 Launch Vehicle Payload User's Guide (Rev 2, 2021)"
+  },
+  {
+    "id": "electron",
+    "name": "Electron Launcher (Rocket Lab)",
+    "cost": 7.5,
+    "payloadByOrbit": {
+      "leo": 300,
+      "sso": 200,
+      "gto": 0,
+      "geo": 0,
+      "moon-llo": 0,
+      "mars-low": 0
+    },
+    "source": "Rocket Lab Electron Payload User's Guide (v6.5, 2020)"
+  },
+  {
+    "id": "atlas-v",
+    "name": "Atlas V 551 (ULA)",
+    "cost": 153,
+    "payloadByOrbit": {
+      "leo": 18850,
+      "sso": 15179,
+      "gto": 8900,
+      "geo": 3850,
+      "moon-llo": 4500,
+      "mars-low": 3800
+    },
+    "source": "United Launch Alliance Atlas V Launch Services User's Guide (Rev 11, 2010)"
+  },
+  {
+    "id": "vulcan-centaur",
+    "name": "Vulcan Centaur VC6 (ULA)",
+    "cost": 110,
+    "payloadByOrbit": {
+      "leo": 27200,
+      "sso": 21500,
+      "gto": 14500,
+      "geo": 7200,
+      "moon-llo": 6800,
+      "mars-low": 5500
+    },
+    "source": "United Launch Alliance Vulcan Launch Services User's Guide (2023)"
+  },
+  {
+    "id": "sls-block1",
+    "name": "Space Launch System (SLS Block 1)",
+    "cost": 850,
+    "payloadByOrbit": {
+      "leo": 95000,
+      "sso": 80000,
+      "gto": 42000,
+      "geo": 27000,
+      "moon-llo": 27000,
+      "mars-low": 24000
+    },
+    "source": "NASA Space Launch System (SLS) Mission Planner's Guide (ESD 30000)"
+  }
 ]

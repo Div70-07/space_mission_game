@@ -1,4 +1,102 @@
 [
-  { "id": "camera-highres", "name": "High-Resolution Optical Imager", "mass": 45, "power": 60, "cost": 30, "dataPerDay": 500, "scienceValue": 80, "source": "placeholder" },
-  { "id": "spectrometer-ir", "name": "Infrared Spectrometer", "mass": 25, "power": 40, "cost": 20, "dataPerDay": 250, "scienceValue": 65, "source": "placeholder" }
+  {
+    "id": "camera-highres",
+    "name": "High-Resolution Optical Imager (HiRISE Class)",
+    "mass": 65,
+    "power": 60,
+    "cost": 35,
+    "dataPerDay": 800,
+    "scienceValue": 90,
+    "source": "NASA MRO HiRISE (High Resolution Imaging Science Experiment)"
+  },
+  {
+    "id": "spectrometer-ir",
+    "name": "Imaging Infrared Spectrometer (CRISM Class)",
+    "mass": 33,
+    "power": 45,
+    "cost": 25,
+    "dataPerDay": 400,
+    "scienceValue": 75,
+    "source": "NASA MRO CRISM (Compact Reconnaissance Imaging Spectrometer for Mars)"
+  },
+  {
+    "id": "radar-altimeter",
+    "name": "Synthetic Aperture Radar & Altimeter (SAR)",
+    "mass": 75,
+    "power": 110,
+    "cost": 42,
+    "dataPerDay": 600,
+    "scienceValue": 85,
+    "source": "NASA Magellan / Cassini RADAR Instrument Specification"
+  },
+  {
+    "id": "mag-plasma",
+    "name": "Triaxial Fluxgate Magnetometer & Plasma Wave Sensor",
+    "mass": 12,
+    "power": 15,
+    "cost": 12,
+    "dataPerDay": 120,
+    "scienceValue": 50,
+    "source": "NASA MAVEN / Voyager Triaxial Fluxgate Magnetometer"
+  },
+  {
+    "id": "thermal-radiometer",
+    "name": "Multispectral Thermal Infrared Radiometer (Diviner Class)",
+    "mass": 11,
+    "power": 25,
+    "cost": 18,
+    "dataPerDay": 200,
+    "scienceValue": 65,
+    "source": "NASA Lunar Reconnaissance Orbiter (LRO) Diviner Lunar Radiometer Experiment"
+  },
+  {
+    "id": "neutron-spectrometer",
+    "name": "Epithermal Neutron & Gamma-Ray Detector (LEND Class)",
+    "mass": 25,
+    "power": 30,
+    "cost": 22,
+    "dataPerDay": 150,
+    "scienceValue": 70,
+    "source": "NASA LRO Lunar Exploration Neutron Detector (LEND) / Lunar Prospector"
+  },
+  {
+    "id": "atmospheric-lidar",
+    "name": "Atmospheric Backscatter LIDAR (CALIOP Class)",
+    "mass": 110,
+    "power": 140,
+    "cost": 48,
+    "dataPerDay": 450,
+    "scienceValue": 80,
+    "source": "NASA CALIPSO Cloud-Aerosol Lidar with Orthogonal Polarization (CALIOP)"
+  },
+  {
+    "id": "uv-spectrograph",
+    "name": "Imaging Ultraviolet Spectrograph (IUVS Class)",
+    "mass": 16,
+    "power": 20,
+    "cost": 20,
+    "dataPerDay": 180,
+    "scienceValue": 60,
+    "source": "NASA MAVEN Imaging Ultraviolet Spectrograph (IUVS) / New Horizons Alice"
+  },
+  {
+    "id": "subsurface-radar",
+    "name": "Shallow Subsurface Sounding Radar (SHARAD Class)",
+    "mass": 40,
+    "power": 80,
+    "cost": 32,
+    "dataPerDay": 500,
+    "scienceValue": 75,
+    "source": "NASA / ASI MRO Shallow Radar (SHARAD) Subsurface Sounder"
+  },
+  {
+    "id": "dust-analyzer",
+    "name": "Cosmic & Interplanetary Dust Analyzer (CDA Class)",
+    "mass": 17,
+    "power": 18,
+    "cost": 15,
+    "dataPerDay": 90,
+    "scienceValue": 55,
+    "source": "NASA / ESA Cassini Cosmic Dust Analyzer (CDA) Instrument Specs"
+  }
 ]

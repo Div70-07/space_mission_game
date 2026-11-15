@@ -6,7 +6,8 @@ export function calculateScore(
   mission: Mission | undefined,
   totals: Totals,
   isSuccess: boolean,
-  instruments: Instrument[]
+  instruments: Instrument[],
+  netPowerWatts?: number   // passed from runMission via checkPowerBudget; avoids (totals as any) hack
 ): number {
   if (!isSuccess) {
     return Math.max(10, Math.min(35, Math.round(instruments.length * 5)));
@@ -24,7 +25,9 @@ export function calculateScore(
 
   // 3. Technical safety margin (up to 20 pts)
   let safetyScore = 15;
-  const netPower = (totals as any).netPowerWatts ?? totals.power;
+  // Use the net power (generation - consumption) if supplied by runMission; fall back to
+  // consumption only as a conservative estimate (always >= 0, so no bonus is wrongly given).
+  const netPower = netPowerWatts ?? 0;
   if (netPower >= 50) safetyScore += 3;
   if (totals.downlinkPerDay >= totals.dataPerDay * 1.2) safetyScore += 2;
 

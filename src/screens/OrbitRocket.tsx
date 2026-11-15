@@ -6,7 +6,7 @@ import { ROLES, RESOURCE_UNITS } from '@/shared/constants'
 import { useDesignStore } from '@/shared/designStore'
 import { gameData } from '@/data'
 import { computeTotals, checkDesign, requiredDeltaV, availableDeltaV } from '@/engine'
-import { ApproveGate } from '@/team'
+import { ApproveGate, canEdit, useTeamStore } from '@/team'
 import { ResourceBars } from './components/ResourceBars'
 import { Tooltip } from './components/Tooltip'
 
@@ -17,7 +17,21 @@ export interface OrbitRocketProps {
 
 export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
   const navigate = useNavigate()
-  const { design, patchDesign, approve, resetApprovals } = useDesignStore()
+  const { design, patchDesign, resetApprovals } = useDesignStore()
+
+  // Team store: mode and actual claimed role (for multiplayer/local permissions)
+  const teamMode = useTeamStore((s) => s.mode)
+  const teamRole = useTeamStore((s) => s.myRole)
+
+  // In team mode (online/local), use claimed role unless assignedRole is explicitly passed.
+  // In solo mode, effectiveRole is undefined, which permits all edits.
+  const effectiveRole: Role | undefined =
+    assignedRole ??
+    ((teamMode === 'online' || teamMode === 'local') && teamRole ? teamRole : undefined)
+
+  const canEditOrbit = effectiveRole ? canEdit(effectiveRole, 'orbit') : true
+  const canEditRocket = effectiveRole ? canEdit(effectiveRole, 'rocket') : true
+  const canEditFuel = effectiveRole ? canEdit(effectiveRole, 'fuel') : true
 
   // Find active mission from catalog
   const currentMission = useMemo(() => {
@@ -50,22 +64,25 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
     return availableDeltaV(currentRocket, design.orbitId, totals.mass, design.fuelKg)
   }, [currentRocket, design.orbitId, totals.mass, design.fuelKg])
 
-  // Orbit selection handler
+  // Orbit selection handler (Planner subsystem)
   const handleSelectOrbit = (orbitId: string) => {
+    if (!canEditOrbit) return
     const newId = design.orbitId === orbitId ? '' : orbitId
     patchDesign({ orbitId: newId })
     resetApprovals()
   }
 
-  // Rocket selection handler
+  // Rocket selection handler (Engineer subsystem)
   const handleSelectRocket = (rocketId: string) => {
+    if (!canEditRocket) return
     const newId = design.rocketId === rocketId ? '' : rocketId
     patchDesign({ rocketId: newId })
     resetApprovals()
   }
 
-  // Propellant fuel adjustment
+  // Propellant fuel adjustment (Engineer subsystem)
   const handleFuelChange = (fuelKg: number) => {
+    if (!canEditFuel) return
     patchDesign({ fuelKg: Math.max(0, fuelKg) })
     resetApprovals()
   }
@@ -180,7 +197,15 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
         </div>
 
         {/* Back and Forward Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {(assignedRole || ((teamMode === 'online' || teamMode === 'local') && teamRole)) && (
+            <div className="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-teal-800/60 text-xs font-mono">
+              <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+              <span className="text-slate-400">{teamMode !== 'solo' ? 'Team Role:' : 'Assigned Role:'}</span>
+              <span className="text-teal-300 font-bold uppercase">{assignedRole ?? teamRole}</span>
+            </div>
+          )}
+
           <Link
             to="/build"
             className="px-4 py-2 text-xs font-mono text-slate-300 hover:text-white bg-slate-900 border border-slate-800 rounded-lg hover:bg-slate-800 transition-colors"
@@ -237,6 +262,19 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
           </span>
         </div>
 
+        {/* Orbit Role Permission Alert */}
+        {!canEditOrbit && (
+          <div className="bg-amber-950/40 border border-amber-800/60 rounded-lg p-3 flex items-center gap-3 text-amber-300 text-xs font-mono">
+            <span className="text-base">🔒</span>
+            <div>
+              <span className="font-semibold uppercase block">Subsystem Locked by Team Access Policy</span>
+              <span className="text-amber-400/90 text-[11px]">
+                Your assigned role is <strong>{effectiveRole}</strong>. Only the <strong>Planner</strong> specialist is authorized to configure deployment orbit.
+              </span>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {gameData.orbits.map((orbit: Orbit) => {
             const isSelected = design.orbitId === orbit.id
@@ -246,21 +284,25 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
               <div
                 key={orbit.id}
                 role="button"
-                tabIndex={0}
+                tabIndex={canEditOrbit ? 0 : -1}
                 aria-pressed={isSelected}
+                aria-disabled={!canEditOrbit}
                 onClick={() => handleSelectOrbit(orbit.id)}
                 onKeyDown={(e) => {
+                  if (!canEditOrbit) return
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
                     handleSelectOrbit(orbit.id)
                   }
                 }}
-                className={`relative rounded-lg p-4 border transition-all cursor-pointer flex flex-col justify-between
-                  ${isSelected
-                    ? isMissionCompatible
-                      ? 'bg-slate-900/90 border-teal-400 ring-1 ring-teal-400/50 shadow-md shadow-teal-950/60'
-                      : 'bg-amber-950/40 border-amber-500 ring-1 ring-amber-500/50 shadow-md shadow-amber-950/60'
-                    : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/40'
+                className={`relative rounded-lg p-4 border transition-all flex flex-col justify-between
+                  ${!canEditOrbit
+                    ? 'opacity-60 cursor-not-allowed bg-slate-950/40 border-slate-800'
+                    : isSelected
+                      ? isMissionCompatible
+                        ? 'bg-slate-900/90 border-teal-400 ring-1 ring-teal-400/50 shadow-md shadow-teal-950/60 cursor-pointer'
+                        : 'bg-amber-950/40 border-amber-500 ring-1 ring-amber-500/50 shadow-md shadow-amber-950/60 cursor-pointer'
+                      : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/40 cursor-pointer'
                   }
                 `}
               >
@@ -293,19 +335,21 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
 
                 <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
                   <span className="text-[11px] font-mono text-slate-500">
-                    {isSelected ? 'Active Target' : 'Click to select'}
+                    {!canEditOrbit ? 'Locked' : isSelected ? 'Active Target' : 'Click to select'}
                   </span>
                   <span
                     className={`px-3 py-1 text-xs font-medium rounded transition-colors font-mono
-                      ${isSelected
-                        ? isMissionCompatible
-                          ? 'bg-teal-500/20 text-teal-300 border border-teal-500/50'
-                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/50'
-                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                      ${!canEditOrbit
+                        ? 'bg-slate-900 text-slate-500 border border-slate-800'
+                        : isSelected
+                          ? isMissionCompatible
+                            ? 'bg-teal-500/20 text-teal-300 border border-teal-500/50'
+                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/50'
+                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                       }
                     `}
                   >
-                    {isSelected ? 'Selected' : 'Select'}
+                    {!canEditOrbit ? 'Locked (Planner)' : isSelected ? 'Selected' : 'Select'}
                   </span>
                 </div>
               </div>
@@ -334,6 +378,19 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
           </span>
         </div>
 
+        {/* Rocket Role Permission Alert */}
+        {!canEditRocket && (
+          <div className="bg-amber-950/40 border border-amber-800/60 rounded-lg p-3 flex items-center gap-3 text-amber-300 text-xs font-mono">
+            <span className="text-base">🔒</span>
+            <div>
+              <span className="font-semibold uppercase block">Subsystem Locked by Team Access Policy</span>
+              <span className="text-amber-400/90 text-[11px]">
+                Your assigned role is <strong>{effectiveRole}</strong>. Only the <strong>Engineer</strong> specialist is authorized to select launch vehicles.
+              </span>
+            </div>
+          </div>
+        )}
+
         {!design.orbitId && (
           <div className="p-3 bg-sky-950/30 rounded-lg border border-sky-800/40 text-xs font-mono text-sky-300 flex items-center gap-2">
             <span>ⓘ</span>
@@ -352,21 +409,25 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
               <div
                 key={rocket.id}
                 role="button"
-                tabIndex={0}
+                tabIndex={canEditRocket ? 0 : -1}
                 aria-pressed={isSelected}
+                aria-disabled={!canEditRocket}
                 onClick={() => handleSelectRocket(rocket.id)}
                 onKeyDown={(e) => {
+                  if (!canEditRocket) return
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
                     handleSelectRocket(rocket.id)
                   }
                 }}
-                className={`relative rounded-lg p-4 border transition-all cursor-pointer flex flex-col justify-between
-                  ${isSelected
-                    ? !canReach || isOverloaded
-                      ? 'bg-rose-950/30 border-rose-500 ring-1 ring-rose-500/50 shadow-md shadow-rose-950/60'
-                      : 'bg-slate-900/90 border-teal-400 ring-1 ring-teal-400/50 shadow-md shadow-teal-950/60'
-                    : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/40'
+                className={`relative rounded-lg p-4 border transition-all flex flex-col justify-between
+                  ${!canEditRocket
+                    ? 'opacity-60 cursor-not-allowed bg-slate-950/40 border-slate-800'
+                    : isSelected
+                      ? !canReach || isOverloaded
+                        ? 'bg-rose-950/30 border-rose-500 ring-1 ring-rose-500/50 shadow-md shadow-rose-950/60 cursor-pointer'
+                        : 'bg-slate-900/90 border-teal-400 ring-1 ring-teal-400/50 shadow-md shadow-teal-950/60 cursor-pointer'
+                      : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/40 cursor-pointer'
                   }
                 `}
               >
@@ -434,13 +495,15 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
                   </span>
                   <span
                     className={`px-3 py-1 text-xs font-medium rounded transition-colors font-mono
-                      ${isSelected
-                        ? 'bg-teal-500/20 text-teal-300 border border-teal-500/50'
-                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                      ${!canEditRocket
+                        ? 'bg-slate-900 text-slate-500 border border-slate-800'
+                        : isSelected
+                          ? 'bg-teal-500/20 text-teal-300 border border-teal-500/50'
+                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                       }
                     `}
                   >
-                    {isSelected ? 'Mounted' : 'Select'}
+                    {!canEditRocket ? 'Locked (Engineer)' : isSelected ? 'Mounted' : 'Select'}
                   </span>
                 </div>
               </div>
@@ -463,6 +526,19 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
           </p>
         </div>
 
+        {/* Fuel Role Permission Alert */}
+        {!canEditFuel && (
+          <div className="bg-amber-950/40 border border-amber-800/60 rounded-lg p-3 flex items-center gap-3 text-amber-300 text-xs font-mono">
+            <span className="text-base">🔒</span>
+            <div>
+              <span className="font-semibold uppercase block">Subsystem Locked by Team Access Policy</span>
+              <span className="text-amber-400/90 text-[11px]">
+                Your assigned role is <strong>{effectiveRole}</strong>. Only the <strong>Engineer</strong> specialist is authorized to configure propellant mass staging.
+              </span>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
           {/* Fuel Slider */}
           <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 space-y-3 font-mono">
@@ -481,9 +557,10 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
               max={2000}
               step={25}
               value={design.fuelKg}
+              disabled={!canEditFuel}
               onChange={(e) => handleFuelChange(Number(e.target.value))}
               aria-label="Propellant Mass Slider"
-              className="w-full accent-teal-400 cursor-pointer"
+              className={`w-full accent-teal-400 ${!canEditFuel ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
             />
 
             <div className="flex justify-between text-[11px] text-slate-500">
@@ -502,18 +579,18 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
             <div className="space-y-2">
               <div className="flex justify-between py-1 border-b border-slate-800">
                 <span className="text-slate-400">Required Trajectory $\Delta v$:</span>
-                <span className="text-slate-200 font-semibold">{reqDeltaV} km/s</span>
+                <span className="text-slate-200 font-semibold">{reqDeltaV.toFixed(2)} km/s</span>
               </div>
 
               <div className="flex justify-between py-1 border-b border-slate-800">
                 <span className="text-slate-400">Available Spacecraft $\Delta v$:</span>
-                <span className="text-teal-300 font-semibold">{availDeltaV} km/s</span>
+                <span className="text-teal-300 font-semibold">{availDeltaV.toFixed(2)} km/s</span>
               </div>
 
               <div className="flex justify-between py-1">
                 <span className="text-slate-400">Delta-V Flight Margin:</span>
                 <span className={`font-semibold ${availDeltaV >= reqDeltaV ? 'text-emerald-300' : 'text-rose-400'}`}>
-                  {availDeltaV >= reqDeltaV ? '+' : ''}{Number((availDeltaV - reqDeltaV).toFixed(2))} km/s
+                  {availDeltaV >= reqDeltaV ? '+' : ''}{(availDeltaV - reqDeltaV).toFixed(2)} km/s
                 </span>
               </div>
             </div>
@@ -532,127 +609,8 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
           </p>
         </div>
 
-        {/* Existing Part C ApproveGate Component */}
-        <ApproveGate approvals={design.approvedBy} />
-
-        {/* Sign-off Actions */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-300">
-                Subsystem Sign-off Panel:
-              </span>
-              {assignedRole && (
-                <span className="text-[11px] font-mono text-teal-300 bg-teal-950/60 px-2 py-0.5 rounded border border-teal-800/50">
-                  Assigned: {assignedRole.toUpperCase()}
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {/* Only show "Sign Off All Roles (Solo)" in Solo mode (FIX 4) */}
-              {!assignedRole && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    ROLES.forEach((r) => approve(r))
-                  }}
-                  disabled={!canApprove}
-                  className="px-3 py-1 text-xs font-mono rounded bg-teal-500/20 text-teal-300 border border-teal-500/40 hover:bg-teal-500/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  Sign Off All Roles (Solo)
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => resetApprovals()}
-                className="px-3 py-1 text-xs font-mono rounded bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700 transition-colors cursor-pointer"
-              >
-                Reset Approvals
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-xs">
-            {ROLES.map((role) => {
-              const isApproved = design.approvedBy.includes(role)
-              // In multiplayer mode, players can only approve their own role (FIX 4)
-              const isUserRole = !assignedRole || assignedRole === role
-              const isClickable = canApprove && !isApproved && isUserRole
-
-              return (
-                <button
-                  key={role}
-                  type="button"
-                  onClick={() => {
-                    if (isClickable) approve(role)
-                  }}
-                  disabled={!isClickable}
-                  className={`p-2.5 rounded border text-left flex flex-col justify-between transition-colors
-                    ${isApproved
-                      ? 'bg-teal-950/50 border-teal-500/50 text-teal-300'
-                      : isClickable
-                        ? 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200 cursor-pointer'
-                        : 'bg-slate-900/50 border-slate-800/50 text-slate-600 cursor-not-allowed opacity-60'
-                    }
-                  `}
-                  title={
-                    !canApprove
-                      ? 'Flight preconditions unmet'
-                      : isApproved
-                        ? 'Already approved'
-                        : !isUserRole
-                          ? `Awaiting sign-off from ${role} specialist`
-                          : `Click to sign off ${role} subsystem`
-                  }
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="uppercase text-[10px] tracking-wider text-slate-400">
-                      {role}
-                    </span>
-                    {assignedRole === role && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" title="Your Assigned Role" />
-                    )}
-                  </div>
-                  <span className="font-semibold text-xs flex items-center gap-1">
-                    {isApproved
-                      ? '✓ APPROVED'
-                      : !isUserRole
-                        ? 'AWAITING TEAM'
-                        : 'SIGN OFF'}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Validation Warnings (FIX 1, FIX 2, FIX 3) */}
-          {!canApprove && (
-            <div className="p-3 bg-amber-950/30 rounded border border-amber-800/40 text-xs font-mono text-amber-300 space-y-1">
-              <span className="font-semibold block uppercase">Flight Sign-off Preconditions Unmet:</span>
-              <ul className="list-disc list-inside space-y-0.5 text-amber-300/90 text-[11px]">
-                {!design.orbitId && <li>Select a target deployment orbit</li>}
-                {design.orbitId && !isOrbitMissionCompatible && (
-                  <li>Target orbit ({currentOrbit?.name}) does not satisfy primary mission trajectory requirements</li>
-                )}
-                {!design.rocketId && <li>Select a compatible launch vehicle</li>}
-                {design.rocketId && !canRocketReachOrbit && (
-                  <li>Selected rocket ({currentRocket?.name}) cannot reach target orbit (no payload capacity listed for {currentOrbit?.name})</li>
-                )}
-                {canRocketReachOrbit && isPayloadCapacityExceeded && (
-                  <li>Spacecraft mass ({totals.mass} kg) exceeds rocket payload capacity ({rocketPayloadCapacity} kg)</li>
-                )}
-                {isBudgetExceeded && (
-                  <li>Combined vehicle and mission expenditure exceeds allotted budget of ${currentMission.budget}M</li>
-                )}
-                {!allChecksPass && (
-                  <li>Engine checks failed: {checks.filter((c) => !c.ok).map((c) => c.message).join(', ')}</li>
-                )}
-              </ul>
-            </div>
-          )}
-        </div>
+        {/* Part C Consolidated Crew Launch Approval Gate */}
+        <ApproveGate approvals={design.approvedBy} onLaunch={() => navigate('/report')} />
       </div>
 
       {/* 7. BOTTOM NAVIGATION BAR */}

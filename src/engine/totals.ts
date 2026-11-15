@@ -31,7 +31,8 @@ export function computeTotals(design: Design | undefined, data: GameData | undef
   // 2. Power calculation (Watts)
   const baseAvionicsPower = 30; // Flight computer & attitude control
   const instrumentsPower = selectedInstruments.reduce((sum, i) => sum + i.power, 0);
-  const totalPowerConsumption = baseAvionicsPower + instrumentsPower;
+  const antennaPower = antenna?.power ?? 0; // RF transmitter amplifier & antenna transceiver
+  const totalPowerConsumption = baseAvionicsPower + instrumentsPower + antennaPower;
 
   // 3. Cost calculation (million USD)
   const instrumentsCost = selectedInstruments.reduce((sum, i) => sum + i.cost, 0);
