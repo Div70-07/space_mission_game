@@ -1,20 +1,53 @@
 // src/engine/comms.ts
-import type { Orbit, Totals } from '../shared/types';
+import type { Orbit, Totals, Mission } from '../shared/types';
 
 export interface CommsBudgetResult {
   ok: boolean;
   marginMBPerDay: number;
   message: string;
+  rawDownlink: number;
+  effectiveDownlink: number;
+  attenuation: number;
 }
 
-export function checkCommsBudget(totals: Totals, orbit: Orbit | undefined): CommsBudgetResult {
-  const isDeepSpace = orbit?.id.toLowerCase().includes('mars') || orbit?.altitudeKm! > 100000;
+/**
+ * Calculates deep-space communications link attenuation factor.
+ * Deep-space path loss penalty of 0.70 (-30%) applies for Mars or high-altitude orbits (>100,000 km)
+ * to represent increased free-space path loss (Friis equation) and Deep Space Network (DSN) scheduling constraints.
+ */
+export function getAttenuationFactor(orbit: Orbit | undefined, mission?: Mission): number {
+  const isMarsOrbit = Boolean(
+    orbit?.id.toLowerCase().includes('mars') ||
+    (orbit?.info && orbit.info.toLowerCase().includes('mars'))
+  );
+  const isHighAltitude = Boolean(orbit?.altitudeKm !== undefined && orbit.altitudeKm > 100000);
+  const isMarsMission = Boolean(
+    !orbit && (
+      mission?.targetDestination?.toLowerCase().includes('mars') ||
+      (mission as any)?.recommendedOrbit?.toLowerCase().includes('mars') ||
+      mission?.orbitIds?.some(id => id.toLowerCase().includes('mars'))
+    )
+  );
 
-  // Deep-space link attenuation (game assumption): a simplified path-loss penalty of 0.70
-  // is applied for Mars or high-altitude orbits (>100 000 km) to represent the increased
-  // free-space path loss and DSN scheduling constraints. Real link budgets use the Friis
-  // transmission equation; this factor is a conservative game-design approximation.
-  const attenuation = isDeepSpace ? 0.7 : 1.0;
+  const isDeepSpace = isMarsOrbit || isHighAltitude || isMarsMission;
+  return isDeepSpace ? 0.7 : 1.0;
+}
+
+/**
+ * Computes effective science data downlink bandwidth in MB/day after path-loss attenuation.
+ */
+export function computeEffectiveDownlink(rawDownlink: number, orbit: Orbit | undefined, mission?: Mission): number {
+  const safeDownlink = Math.max(0, rawDownlink);
+  const attenuation = getAttenuationFactor(orbit, mission);
+  return Math.round(safeDownlink * attenuation);
+}
+
+export function checkCommsBudget(
+  totals: Totals,
+  orbit: Orbit | undefined,
+  mission?: Mission
+): CommsBudgetResult {
+  const attenuation = getAttenuationFactor(orbit, mission);
 
   // Guard against negative totals (malformed data should not produce negative margins)
   const safeDownlink = Math.max(0, totals.downlinkPerDay);
@@ -29,11 +62,16 @@ export function checkCommsBudget(totals: Totals, orbit: Orbit | undefined): Comm
     message = 'Critical: No antenna installed. Science data cannot be returned.';
   } else if (!ok) {
     message = `Downlink bottleneck: Instruments produce ${safeData} MB/day, exceeding antenna downlink (${effectiveDownlink} MB/day). Buffer will overflow.`;
+  } else if (attenuation < 1.0) {
+    message = `Communications link nominal. Mars deep-space attenuation (x${attenuation.toFixed(2)}): ${effectiveDownlink} MB/day effective.`;
   }
 
   return {
     ok,
     marginMBPerDay,
     message,
+    rawDownlink: safeDownlink,
+    effectiveDownlink,
+    attenuation,
   };
 }

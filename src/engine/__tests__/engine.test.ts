@@ -4,7 +4,7 @@ import { computeTotals } from '../totals';
 import { checkDesign } from '../checkDesign';
 import { requiredDeltaV, availableDeltaV } from '../deltaV';
 import { checkPowerBudget } from '../power';
-import { checkCommsBudget } from '../comms';
+import { checkCommsBudget, getAttenuationFactor, computeEffectiveDownlink } from '../comms';
 import { runMission } from '../runMission';
 import { createRNG } from '../rng';
 import type { Design, GameData } from '../../shared/types';
@@ -210,6 +210,59 @@ describe('checkCommsBudget — negative guard & attenuation', () => {
     // effective = round(1000 * 0.7) = 700; margin = 700 - 50 = 650
     expect(result.marginMBPerDay).toBe(650);
     expect(result.ok).toBe(true);
+  });
+
+  it('Mars Climate Surveyor scenario: 2500 MB/d raw antenna with 800 MB/d data generation passes on Mars', () => {
+    const marsLowOrbit = {
+      id: 'mars-low',
+      name: 'Low Mars Science Orbit (Mars)',
+      altitudeKm: 300,
+      info: 'Sun-synchronous 300 km science orbit around Mars.',
+    };
+
+    expect(getAttenuationFactor(marsLowOrbit)).toBe(0.7);
+    expect(computeEffectiveDownlink(2500, marsLowOrbit)).toBe(1750);
+
+    const totals = {
+      mass: 450,
+      power: 280,
+      cost: 185,
+      dataPerDay: 800,
+      downlinkPerDay: 2500,
+      lifetimeMonths: 36,
+    };
+
+    const result = checkCommsBudget(totals, marsLowOrbit);
+    expect(result.ok).toBe(true);
+    expect(result.rawDownlink).toBe(2500);
+    expect(result.effectiveDownlink).toBe(1750);
+    expect(result.attenuation).toBe(0.7);
+    expect(result.marginMBPerDay).toBe(950); // 1750 - 800
+    expect(result.message).toContain('nominal');
+  });
+
+  it('Mars Climate Surveyor scenario: fails if data generation exceeds effective downlink (e.g. 1800 MB/d)', () => {
+    const marsLowOrbit = {
+      id: 'mars-low',
+      name: 'Low Mars Science Orbit (Mars)',
+      altitudeKm: 300,
+      info: 'Sun-synchronous 300 km science orbit around Mars.',
+    };
+
+    const totals = {
+      mass: 450,
+      power: 280,
+      cost: 185,
+      dataPerDay: 1800, // Exceeds 1750 effective downlink
+      downlinkPerDay: 2500,
+      lifetimeMonths: 36,
+    };
+
+    const result = checkCommsBudget(totals, marsLowOrbit);
+    expect(result.ok).toBe(false);
+    expect(result.effectiveDownlink).toBe(1750);
+    expect(result.marginMBPerDay).toBe(-50); // 1750 - 1800
+    expect(result.message).toContain('Downlink bottleneck');
   });
 
   it('negative totals do not crash and produce non-negative margin calc', () => {

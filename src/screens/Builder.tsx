@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import type { Role, Instrument, Part } from '@/shared/types'
 import { gameData } from '@/data'
-import { computeTotals, checkDesign } from '@/engine'
+import { computeTotals, checkDesign, computeEffectiveDownlink, getAttenuationFactor } from '@/engine'
 import { canEdit, useTeamStore } from '@/team'
 import { useDesignStore } from '@/shared/designStore'
 import { ResourceBars } from './components/ResourceBars'
@@ -96,6 +96,17 @@ export function Builder({ assignedRole }: BuilderProps = {}) {
   const totalScienceYield = useMemo(() => {
     return mountedInstruments.reduce((sum, inst) => sum + inst.scienceValue, 0)
   }, [mountedInstruments])
+
+  // Downlink telemetry calculations (shared physics with engine comms budget)
+  const commsAttenuation = useMemo(() => {
+    return getAttenuationFactor(currentOrbit, currentMission)
+  }, [currentOrbit, currentMission])
+
+  const effectiveDownlink = useMemo(() => {
+    return computeEffectiveDownlink(totals.downlinkPerDay, currentOrbit, currentMission)
+  }, [totals.downlinkPerDay, currentOrbit, currentMission])
+
+  const isCommsSufficient = effectiveDownlink >= totals.dataPerDay && totals.downlinkPerDay > 0
 
   // Selection handlers
   const handleToggleInstrument = (instId: string) => {
@@ -414,20 +425,29 @@ export function Builder({ assignedRole }: BuilderProps = {}) {
                   </div>
                   <div className="text-slate-500 hidden sm:block font-bold">➔</div>
                   <div>
-                    <span className="text-slate-400 text-xs font-sans block">Downlink Bandwidth:</span>
-                    <span className={`text-sm font-bold font-mono ${totals.downlinkPerDay >= totals.dataPerDay ? 'text-blue-400' : 'text-red-400'}`}>
-                      {totals.downlinkPerDay} MB/day
+                    <span className="text-slate-400 text-xs font-sans block">
+                      {commsAttenuation < 1.0 ? 'Effective Downlink:' : 'Downlink Bandwidth:'}
                     </span>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className={`text-sm font-bold font-mono ${isCommsSufficient ? 'text-blue-400' : 'text-red-400'}`}>
+                        {effectiveDownlink.toLocaleString()} MB/day
+                      </span>
+                      {commsAttenuation < 1.0 && totals.downlinkPerDay > 0 && (
+                        <span className="text-[11px] font-sans text-slate-400">
+                          (Raw: {totals.downlinkPerDay.toLocaleString()} MB/d, -30% Mars)
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <span
                       className={`text-xs font-sans font-semibold px-2 py-0.5 rounded border ${
-                        totals.downlinkPerDay >= totals.dataPerDay
+                        isCommsSufficient
                           ? 'bg-emerald-950/80 text-emerald-300 border-emerald-800/60'
                           : 'bg-rose-950/80 text-rose-300 border-rose-800/60'
                       }`}
                     >
-                      {totals.downlinkPerDay >= totals.dataPerDay ? 'BANDWIDTH SUFFICIENT' : 'BUFFER OVERFLOW RISK'}
+                      {isCommsSufficient ? 'BANDWIDTH SUFFICIENT' : 'BUFFER OVERFLOW RISK'}
                     </span>
                   </div>
                 </div>
