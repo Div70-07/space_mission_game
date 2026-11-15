@@ -5,10 +5,11 @@ import type { Role, Orbit, Rocket } from '@/shared/types'
 import { ROLES, RESOURCE_UNITS } from '@/shared/constants'
 import { useDesignStore } from '@/shared/designStore'
 import { gameData } from '@/data'
-import { computeTotals, checkDesign, requiredDeltaV, availableDeltaV } from '@/engine'
+import { computeTotals, checkDesign, requiredDeltaV, availableDeltaV, runMission } from '@/engine'
 import { ApproveGate, canEdit, useTeamStore } from '@/team'
 import { ResourceBars } from './components/ResourceBars'
 import { Tooltip } from './components/Tooltip'
+import { resolveDestination } from './MissionExecution'
 
 export interface OrbitRocketProps {
   /** Optional assigned player role when operating within a multiplayer session */
@@ -146,6 +147,26 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
     canApprove &&
     allRolesApproved
   )
+
+  // Launch execution handler: Generates single authoritative SimResult and routes to execution
+  const handleInitiateLaunch = () => {
+    if (!canProceedToReport) return
+
+    // 1. Generate single authoritative SimResult using Part A engine
+    const simulationSeed = 42
+    const simResult = runMission(design, gameData, simulationSeed)
+
+    // 2. Resolve destination celestial body from mission and orbit
+    const destination = resolveDestination(currentMission, design.orbitId)
+
+    // 3. Navigate to dedicated execution screen with simulation state
+    navigate('/execution', {
+      state: {
+        simResult,
+        destination,
+      },
+    })
+  }
 
   // Empty state guard if accessed directly without choosing a mission
   if (!currentMission) {
@@ -610,7 +631,7 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
         </div>
 
         {/* Part C Consolidated Crew Launch Approval Gate */}
-        <ApproveGate approvals={design.approvedBy} onLaunch={() => navigate('/report')} />
+        <ApproveGate approvals={design.approvedBy} onLaunch={handleInitiateLaunch} />
       </div>
 
       {/* 7. BOTTOM NAVIGATION BAR */}
@@ -632,7 +653,7 @@ export function OrbitRocket({ assignedRole }: OrbitRocketProps = {}) {
           <button
             type="button"
             disabled={!canProceedToReport}
-            onClick={() => navigate('/report')}
+            onClick={handleInitiateLaunch}
             className={`inline-flex items-center gap-2 font-semibold px-6 py-2.5 rounded-lg font-mono text-sm transition-all
               ${canProceedToReport
                 ? 'bg-teal-500 hover:bg-teal-400 text-slate-950 shadow-lg shadow-teal-950/60 cursor-pointer'

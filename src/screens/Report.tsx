@@ -1,17 +1,26 @@
 // Owner: B. Flight outcome, simulation playback, and debrief report workstation.
-import { useState, useMemo } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useMemo } from 'react'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import type { SimResult, SimEvent, RealMission } from '@/shared/types'
 import { useDesignStore } from '@/shared/designStore'
 import { gameData } from '@/data'
-import { runMission, computeTotals, checkDesign } from '@/engine'
+import { computeTotals, checkDesign } from '@/engine'
 import { MissionScene } from '@/scene'
 import { ROLES, RESOURCE_UNITS } from '@/shared/constants'
+import { resolveDestination } from './MissionExecution'
 
 export function Report() {
   const navigate = useNavigate()
-  // FIX 1: Removed unused patchDesign
+  const location = useLocation()
   const { design, resetApprovals, reset } = useDesignStore()
+
+  // Retrieve single authoritative SimResult and destination from navigation state
+  const navState = location.state as {
+    simResult?: SimResult
+    destination?: 'earth' | 'moon' | 'mars'
+  } | null
+
+  const simResult = navState?.simResult ?? null
 
   // Find active mission, orbit, and rocket specifications
   const currentMission = useMemo(() => {
@@ -34,7 +43,13 @@ export function Report() {
     return checkDesign(design, gameData)
   }, [design])
 
-  // FIX 2: Comprehensive flight authorization verification before debrief
+  // Destination celestial body
+  const destination: 'earth' | 'moon' | 'mars' = useMemo(() => {
+    if (navState?.destination) return navState.destination
+    return resolveDestination(currentMission, design.orbitId)
+  }, [navState?.destination, currentMission, design.orbitId])
+
+  // Comprehensive flight authorization verification before debrief
   const rocketPayloadCapacity = useMemo(() => {
     if (!currentRocket || !design.orbitId) return undefined
     return currentRocket.payloadByOrbit[design.orbitId]
@@ -89,13 +104,6 @@ export function Report() {
       allRolesApproved
     )
   }, [currentMission, design.orbitId, design.rocketId, design.approvedBy, rocketPayloadCapacity, totals.mass, totals.cost, currentRocket?.cost, checks])
-
-  // Execute mission simulation strictly once upon mounting if authorized
-  const [simResult] = useState<SimResult | null>(() => {
-    if (!isFlightAuthorized) return null
-    const simulationSeed = 42
-    return runMission(design, gameData, simulationSeed)
-  })
 
   // Match real mission reference if supplied by engine
   const matchedRealMission = useMemo<RealMission | undefined>(() => {
@@ -218,7 +226,13 @@ export function Report() {
             CANVAS VISUALIZER ACTIVE
           </span>
         </div>
-        <MissionScene result={simResult} />
+        <MissionScene
+          result={simResult}
+          destination={destination}
+          orbitId={design.orbitId}
+          missionName={currentMission?.name}
+          autoPlay={false}
+        />
       </div>
 
       {/* 3. SIMULATION LOG & DEBRIEF FINDINGS */}
@@ -388,12 +402,19 @@ export function Report() {
 
       {/* 5. RETRY & NAVIGATION ACTIONS */}
       <div className="bg-slate-950/90 border border-slate-800 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             to="/orbit-rocket"
             className="px-4 py-2 text-xs font-mono text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 rounded-lg transition-colors"
           >
             ← Review Orbit & Staging
+          </Link>
+          <Link
+            to="/execution"
+            state={{ simResult, destination }}
+            className="px-4 py-2 text-xs font-mono text-teal-400 hover:text-teal-300 bg-slate-900 border border-slate-800 rounded-lg transition-colors"
+          >
+            ⟲ Replay Trajectory Scene
           </Link>
         </div>
 
